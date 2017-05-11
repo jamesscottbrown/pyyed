@@ -1,6 +1,6 @@
-from pyyed import *
+from pyyed import * 
 
-g = Graph()
+g = pyyed.Graph()
 
 g.add_node('foo', font_family="Zapfino")
 g.add_node('foo2', shape="roundrectangle", font_style="bolditalic", underlined_text="true")
@@ -14,3 +14,15 @@ Line
 Text!""")
 
 print g.get_graph()
+
+
+
+g = Graph()
+g.add_node('foo', font_family="Zapfino")
+
+gg = g.add_group("MY_Group", shape="diamond")
+gg.add_node('foo2', shape="roundrectangle", font_style="bolditalic", underlined_text="true")
+gg.add_node('abc', font_size="72", height="100")
+
+g.add_edge('foo2', 'abc')
+g.add_edge('foo', 'MY_Group')

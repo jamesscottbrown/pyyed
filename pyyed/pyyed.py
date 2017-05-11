@@ -284,7 +284,7 @@ class Graph:
 
     def get_graph(self):
         self.construct_graphml()
-        return '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>' + "\n" + ET.tostring(self.graphml)
+        return ET.tostring(self.graphml)
 
     def add_node(self, node_name, **kwargs):
         if node_name in self.nodes.keys():
