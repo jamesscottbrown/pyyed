@@ -19,7 +19,7 @@ The interface is similar to that of NetworkX:
     g.add_node('foo2', shape="roundrectangle", font_style="bolditalic", underlined_text="true")    
 
     g.add_edge('foo1', 'foo2')
-    g.add_node('abc', font_size="72", height="100")    
+    g.add_node('abc', font_size="72", height="100", shape_fill="#FFFFFF")    
 
     g.add_node('bar', label="Multi\nline\ntext")
     g.add_node('foobar', label="""Multi
@@ -28,3 +28,7 @@ The interface is similar to that of NetworkX:
 
     print g.get_graph()
     
+
+Saving this to a file with a ``.graphml`` extension, opening in yEd, applying  ``Tools -> Fit Node to Label`` and ``Layout -> One-click layout`` produces something like the following:
+
+![](example.png)
