@@ -1,6 +1,6 @@
 import xml.etree.cElementTree as ET
 
-node_shapes = ["rectangle", "rectangle3d", "rectangle", "roundrectangle", "diamond", "ellipse", "fatarrow",
+node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse", "fatarrow",
                "fatarrow2", "hexagon", "octagon", "parallelogram", "parallelogram2", "star5", "star6",
                "star6", "star8", "trapezoid", "trapezoid2", "triangle", "trapezoid2", "triangle"]
 
@@ -190,11 +190,13 @@ class Node:
 
 
 class Edge:
-    def __init__(self, node1, node2, arrowhead="standard", arrowfoot="none", color="#000000", line_type="line",
+    def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none", color="#000000", line_type="line",
                  width="1.0"):
         self.node1 = node1
         self.node2 = node2
         self.edge_id = "%s_%s" % (node1, node2)
+
+        self.label = label
 
         if arrowhead not in arrow_types:
             raise RuntimeWarning("Arrowhead type %s not recognised" % arrowhead)
@@ -221,6 +223,9 @@ class Edge:
 
         ET.SubElement(pl, "y:Arrows", source=self.arrowfoot, target=self.arrowhead)
         ET.SubElement(pl, "y:LineStyle", color=self.color, type=self.line_type, width=self.width)
+
+        if self.label:
+            ET.SubElement(pl, "y:EdgeLabel").text = self.label
 
         return edge
 
@@ -292,7 +297,8 @@ class Graph:
 
         self.nodes[node_name] = Node(node_name, **kwargs)
 
-    def add_edge(self, node1, node2):
+    def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none", color="#000000", line_type="line",
+                 width="1.0"):
         # pass node names, not actual node objects
 
         existing_entities = []
@@ -304,7 +310,7 @@ class Graph:
         if node2 not in existing_entities:
             self.nodes[node2] = Node(node2)
 
-        edge = Edge(node1, node2)
+        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width)
         self.edges[edge.edge_id] = edge
 
     def add_group(self, group_id, **kwargs):

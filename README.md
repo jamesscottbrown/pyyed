@@ -26,9 +26,22 @@ The interface is similar to that of NetworkX:
     Line
     Text!""")    
 
+    g.add_edge('foo', 'foo1', label="EDGE!", width="3.0", color="#0000FF", 
+               arrowhead="white_diamond", arrowfoot="standard", line_type="dotted")
+
     print g.get_graph()
     
 
 Saving this to a file with a ``.graphml`` extension, opening in yEd, applying  ``Tools -> Fit Node to Label`` and ``Layout -> One-click layout`` produces something like the following:
 
 ![](example.png)
+
+## Options
+
+Valid ``node shapes`` are: "rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse", "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram", "parallelogram2", "star5", "star6", "star6", "star8", "trapezoid", "trapezoid2", "triangle", "trapezoid2", "triangle"
+
+Valid ``line_types`` are: "line", "dashed", "dotted", "dashed_dotted"
+
+Valid ``font_styles`` are: "plain", "bold", "italic", "bolditalic"
+
+Valid ``arrow_types`` are: "none", "standard", "white_delta", "diamond", "white_diamond", "short", "plain", "concave", "concave", "convex", "circle", "transparent_circle", "dash", "skewed_dash", "t_shape", "crows_foot_one_mandatory", "crows_foot_many_mandatory", "crows_foot_many_optional", "crows_foot_many_optional", "crows_foot_one", "crows_foot_many", "crows_foot_optional"
