@@ -1,4 +1,5 @@
 import xml.etree.cElementTree as ET
+import sys
 
 node_shapes = ["rectangle", "rectangle3d", "rectangle", "roundrectangle", "diamond", "ellipse", "fatarrow",
                "fatarrow2", "hexagon", "octagon", "parallelogram", "parallelogram2", "star5", "star6",
@@ -284,7 +285,11 @@ class Graph:
 
     def get_graph(self):
         self.construct_graphml()
-        return ET.tostring(self.graphml)
+        # Py2/3 sigh.
+        if sys.version_info.major < 3:
+            return ET.tostring(self.graphml, encoding='UTF-8')
+        else:
+            return ET.tostring(self.graphml, encoding='UTF-8').decode()
 
     def add_node(self, node_name, **kwargs):
         if node_name in self.nodes.keys():
