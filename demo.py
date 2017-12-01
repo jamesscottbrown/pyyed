@@ -1,4 +1,5 @@
-from pyyed import * 
+from __future__ import print_function
+import pyyed
 
 g = pyyed.Graph()
 
@@ -13,11 +14,10 @@ g.add_node('foobar', label="""Multi
 Line
 Text!""")
 
-print g.get_graph()
+print(g.get_graph())
 
 
-
-g = Graph()
+g = pyyed.Graph()
 g.add_node('foo', font_family="Zapfino")
 
 gg = g.add_group("MY_Group", shape="diamond")
