@@ -5,15 +5,15 @@ from distutils.command.install import install as _install
 
 setup(name='pyyed',
       version='1.0',
-      description='A simple Python library to export Networks to',
+      description='A simple Python library to export graphs to the yEd graph editor',
 
       author='James Scott-Brown',
 
       author_email='james@jamesscottbrown.com',
 
-      url='https://github.com/jamesscottbrown/pyyed.',
+      url='https://github.com/jamesscottbrown/pyyed',
 
       packages=['pyyed'],
       
-      requires=['xml']
+      requires=[]
       )
