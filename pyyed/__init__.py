@@ -306,8 +306,9 @@ class Graph:
                  width="1.0"):
         # pass node names, not actual node objects
 
-        existing_entities = []
-        map(existing_entities.extend, [self.nodes_in_groups, self.nodes.keys(), self.groups.keys()])
+        existing_entities = self.nodes_in_groups
+        existing_entities.extend(self.nodes.keys())
+        existing_entities.extend(self.groups.keys())
 
         if node1 not in existing_entities:
             self.nodes[node1] = Node(node1)
