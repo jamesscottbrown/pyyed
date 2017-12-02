@@ -1,27 +1,27 @@
 import sys
 import xml.etree.cElementTree as ET
 
-node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse", "fatarrow",
-               "fatarrow2", "hexagon", "octagon", "parallelogram", "parallelogram2", "star5", "star6",
-               "star6", "star8", "trapezoid", "trapezoid2", "triangle", "trapezoid2", "triangle"]
+node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
+               "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
+               "parallelogram2", "star5", "star6", "star6", "star8", "trapezoid",
+               "trapezoid2", "triangle", "trapezoid2", "triangle"]
 
 line_types = ["line", "dashed", "dotted", "dashed_dotted"]
 font_styles = ["plain", "bold", "italic", "bolditalic"]
 
-arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "short", "plain", "concave",
-               "concave", "convex", "circle", "transparent_circle", "dash", "skewed_dash", "t_shape",
-               "crows_foot_one_mandatory", "crows_foot_many_mandatory", "crows_foot_many_optional",
-               "crows_foot_many_optional", "crows_foot_one", "crows_foot_many", "crows_foot_optional"]
+arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "short",
+               "plain", "concave", "convex", "circle", "transparent_circle", "dash",
+               "skewed_dash", "t_shape", "crows_foot_one_mandatory",
+               "crows_foot_many_mandatory", "crows_foot_many_optional", "crows_foot_one",
+               "crows_foot_many", "crows_foot_optional"]
 
 
 class Group:
-    def __init__(self, group_id, parent_graph, label=None,
-                 shape="rectangle",
-                 closed="false",
-                 font_family="Dialog", underlined_text="false", font_style="plain", font_size="12",
-                 fill="#FFCC00", transparent="false",
-                 edge_color="#000000", edge_type="line", edge_width="1.0",
-                 height=False, width=False, x=False, y=False):
+    def __init__(self, group_id, parent_graph, label=None, shape="rectangle",
+                 closed="false", font_family="Dialog", underlined_text="false",
+                 font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
+                 edge_color="#000000", edge_type="line", edge_width="1.0", height=False,
+                 width=False, x=False, y=False):
 
         self.label = label
         if label is None:
@@ -91,17 +91,19 @@ class Group:
 
         ET.SubElement(group_node, "y:Fill", color=self.fill, transparent=self.transparent)
 
-        ET.SubElement(group_node, "y:BorderStyle", color=self.edge_color, type=self.edge_type, width=self.edge_width)
+        ET.SubElement(group_node, "y:BorderStyle", color=self.edge_color,
+                      type=self.edge_type, width=self.edge_width)
 
-        label = ET.SubElement(group_node, "y:NodeLabel", modelName="internal", modelPosition="t",
+        label = ET.SubElement(group_node, "y:NodeLabel", modelName="internal",
+                              modelPosition="t",
                               fontFamily=self.font_family, fontSize=self.font_size,
-                              underlinedText=self.underlined_text, fontStyle=self.font_style)
+                              underlinedText=self.underlined_text,
+                              fontStyle=self.font_style)
         label.text = self.label
 
         ET.SubElement(group_node, "y:Shape", type=self.shape)
 
         ET.SubElement(group_node, "y:State", closed=self.closed)
-
 
         graph = ET.SubElement(node, "graph", edgedefault="directed", id=self.group_id)
 
@@ -114,12 +116,11 @@ class Group:
 
 
 class Node:
-    def __init__(self, node_name, label=None,
-                 shape="rectangle",
-                 font_family="Dialog", underlined_text="false", font_style="plain", font_size="12",
-                 shape_fill="#FF0000", transparent="false",
-                 edge_color="#000000", edge_type="line", edge_width="1.0",
-                 height=False, width=False, x=False, y=False):
+    def __init__(self, node_name, label=None, shape="rectangle", font_family="Dialog",
+                 underlined_text="false", font_style="plain", font_size="12",
+                 shape_fill="#FF0000", transparent="false", edge_color="#000000",
+                 edge_type="line", edge_width="1.0", height=False, width=False, x=False,
+                 y=False):
 
         self.label = label
         if label is None:
@@ -177,12 +178,16 @@ class Node:
             ET.SubElement(shape, "y:Geometry", **self.geom)
         # <y:Geometry height="30.0" width="30.0" x="475.0" y="727.0"/>
 
-        ET.SubElement(shape, "y:Fill", color=self.shape_fill, transparent=self.transparent)
+        ET.SubElement(shape, "y:Fill", color=self.shape_fill,
+                      transparent=self.transparent)
 
-        ET.SubElement(shape, "y:BorderStyle", color=self.edge_color, type=self.edge_type, width=self.edge_width)
+        ET.SubElement(shape, "y:BorderStyle", color=self.edge_color, type=self.edge_type,
+                      width=self.edge_width)
 
-        label = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family, fontSize=self.font_size,
-                              underlinedText=self.underlined_text, fontStyle=self.font_style)
+        label = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family,
+                              fontSize=self.font_size,
+                              underlinedText=self.underlined_text,
+                              fontStyle=self.font_style)
         label.text = self.label
 
         ET.SubElement(shape, "y:Shape", type=self.shape)
@@ -191,8 +196,8 @@ class Node:
 
 
 class Edge:
-    def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none", color="#000000", line_type="line",
-                 width="1.0"):
+    def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
+                 color="#000000", line_type="line", width="1.0"):
         self.node1 = node1
         self.node2 = node2
         self.edge_id = "%s_%s" % (node1, node2)
@@ -223,7 +228,8 @@ class Edge:
         pl = ET.SubElement(data, "y:PolyLineEdge")
 
         ET.SubElement(pl, "y:Arrows", source=self.arrowfoot, target=self.arrowhead)
-        ET.SubElement(pl, "y:LineStyle", color=self.color, type=self.line_type, width=self.width)
+        ET.SubElement(pl, "y:LineStyle", color=self.color, type=self.line_type,
+                      width=self.width)
 
         if self.label:
             ET.SubElement(pl, "y:EdgeLabel").text = self.label
@@ -250,7 +256,8 @@ class Graph:
 
         graphml = ET.Element("graphml", xmlns="http://graphml.graphdrawing.org/xmlns")
         graphml.set("xmlns:java", "http://www.yworks.com/xml/yfiles-common/1.0/java")
-        graphml.set("xmlns:sys", "http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0")
+        graphml.set("xmlns:sys",
+                    "http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0")
         graphml.set("xmlns:x", "http://www.yworks.com/xml/yfiles-common/markup/2.0")
         graphml.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         graphml.set("xmlns:y", "http://www.yworks.com/xml/graphml")
@@ -266,7 +273,8 @@ class Graph:
         edge_key.set("for", "edge")
         edge_key.set("yfiles.type", "edgegraphics")
 
-        graph = ET.SubElement(graphml, "graph", edgedefault=self.directed, id=self.graph_id)
+        graph = ET.SubElement(graphml, "graph", edgedefault=self.directed,
+                              id=self.graph_id)
 
         for node_id in self.nodes:
             node = self.nodes[node_id].convert()
@@ -275,7 +283,6 @@ class Graph:
         for group_id in self.groups:
             node = self.groups[group_id].convert()
             graph.append(node)
-
 
         for edge_id in self.edges:
             edge = self.edges[edge_id].convert()
@@ -302,7 +309,8 @@ class Graph:
 
         self.nodes[node_name] = Node(node_name, **kwargs)
 
-    def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none", color="#000000", line_type="line",
+    def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
+                 color="#000000", line_type="line",
                  width="1.0"):
         # pass node names, not actual node objects
 
