@@ -1,4 +1,5 @@
-from pyyed import * 
+from __future__ import print_function
+import pyyed
 
 g = pyyed.Graph()
 
@@ -16,9 +17,9 @@ Text!""")
 g.add_edge('foo', 'foo1', label="EDGE!", width="3.0", color="#0000FF", 
 	       arrowhead="white_diamond", arrowfoot="standard", line_type="dotted")
 
-print g.get_graph()
+print(g.get_graph())
 
-print "\n\n\n"
+print("\n\n\n")
 
 
 g = pyyed.Graph()
@@ -31,6 +32,6 @@ gg.add_node('abc', font_size="72", height="100")
 g.add_edge('foo2', 'abc')
 g.add_edge('foo', 'MY_Group')
 
-print g.get_graph()
+print(g.get_graph())
 
 
