@@ -34,3 +34,19 @@ g.add_edge('foo2', 'abc')
 g.add_edge('foo', 'MY_Group')
 
 print(g.get_graph())
+
+
+print("\n\n\n")
+
+g = pyyed.Graph()
+g.add_node('Car', shape_fill="#EEEEEE", 
+	       node_type="UMLClassNode",
+	       UML={"attributes": "Model\nManufacturer\nPrice", 
+	       "methods": "getModel()\ngetManufacturer()\ngetPrice()\nsetPrice()"})
+
+g.add_node('Vehicle', shape_fill="#EEEEEE", node_type="UMLClassNode")
+g.add_edge('Car', 'Vehicle', arrowhead="white_delta")
+
+g.add_node('This is a note', shape_fill="#EEEEEE", node_type="UMLNoteNode")
+
+print(g.get_graph())

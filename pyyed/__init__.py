@@ -120,13 +120,16 @@ class Node:
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", edge_color="#000000",
                  edge_type="line", edge_width="1.0", height=False, width=False, x=False,
-                 y=False):
+                 y=False, node_type="ShapeNode", UML=False):
 
         self.label = label
         if label is None:
             self.label = node_name
 
         self.node_name = node_name
+
+        self.node_type = node_type
+        self.UML = UML
 
         # node shape
         if shape not in node_shapes:
@@ -172,7 +175,7 @@ class Node:
 
         node = ET.Element("node", id=self.node_name)
         data = ET.SubElement(node, "data", key="data_node")
-        shape = ET.SubElement(data, "y:ShapeNode")
+        shape = ET.SubElement(data, "y:" + self.node_type)
 
         if self.geom:
             ET.SubElement(shape, "y:Geometry", **self.geom)
@@ -191,6 +194,15 @@ class Node:
         label.text = self.label
 
         ET.SubElement(shape, "y:Shape", type=self.shape)
+
+        if self.UML:
+            UML = ET.SubElement(shape, "y:UML")  
+
+            attributes = ET.SubElement(UML, "y:AttributeLabel", type=self.shape)  
+            attributes.text = self.UML["attributes"]
+
+            methods = ET.SubElement(UML, "y:MethodLabel", type=self.shape)  
+            methods.text = self.UML["methods"]
 
         return node
 
