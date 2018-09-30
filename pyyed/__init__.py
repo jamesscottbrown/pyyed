@@ -204,6 +204,9 @@ class Node:
             methods = ET.SubElement(UML, "y:MethodLabel", type=self.shape)  
             methods.text = self.UML["methods"]
 
+            stereotype = self.UML["stereotype"] if "stereotype" in self.UML else ""
+            UML.set("stereotype", stereotype)
+
         return node
 
 
