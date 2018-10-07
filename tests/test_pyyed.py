@@ -85,3 +85,21 @@ def assertUmlNode(graphml, expected_stereotype, expected_attributes, expected_me
     assert umlnode.attrib['stereotype'] == expected_stereotype
     assert attributes.text == expected_attributes
     assert methods.text == expected_methods
+
+
+def test_numeric_node_ids():
+    g = pyyed.Graph()
+    g.add_node(1, label="Node1")
+    g.add_node(2, label="Node2")
+    g.add_edge(1,2)
+
+    assert g.nodes[1].label == "Node1"
+    assert g.nodes[2].label == "Node2"
+    
+    node1 = g.edges['1_2'].node1
+    node2 = g.edges['1_2'].node2
+    
+    assert g.nodes[node1].label == "Node1"
+    assert g.nodes[node2].label == "Node2"
+
+    assert g.get_graph()
