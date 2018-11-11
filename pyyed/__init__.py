@@ -173,7 +173,7 @@ class Node:
 
     def convert(self):
 
-        node = ET.Element("node", id=self.node_name)
+        node = ET.Element("node", id=str(self.node_name))
         data = ET.SubElement(node, "data", key="data_node")
         shape = ET.SubElement(data, "y:" + self.node_type)
 
@@ -238,7 +238,7 @@ class Edge:
         self.width = width
 
     def convert(self):
-        edge = ET.Element("edge", id=self.edge_id, source=self.node1, target=self.node2)
+        edge = ET.Element("edge", id=str(self.edge_id), source=str(self.node1), target=str(self.node2))
         data = ET.SubElement(edge, "data", key="data_edge")
         pl = ET.SubElement(data, "y:PolyLineEdge")
 
