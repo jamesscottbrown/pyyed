@@ -32,7 +32,15 @@ g.add_node('foobar', label="""Multi
 g.add_edge('foo', 'foo1', label="EDGE!", width="3.0", color="#0000FF", 
                arrowhead="white_diamond", arrowfoot="standard", line_type="dotted")
 
-print g.get_graph()
+print(g.get_graph())
+
+inp = input("\nWould you like to write this data to a file? (y/n): ")
+if "y" in inp.lower():
+    file_name = "test_graph.graphml"
+    file_handle = open(file_name, "w")
+    file_handle.write(g.get_graph())
+    file_handle.close()
+    print("Graph written to %s" % file_name)
 ```    
 
 Saving this to a file with a ``.graphml`` extension, opening in yEd, applying  ``Tools -> Fit Node to Label`` and ``Layout -> One-click layout`` produces something like the following:
