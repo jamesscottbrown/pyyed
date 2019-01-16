@@ -9,6 +9,8 @@ node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse
 line_types = ["line", "dashed", "dotted", "dashed_dotted"]
 font_styles = ["plain", "bold", "italic", "bolditalic"]
 
+label_alignments = ['left', 'center', 'right']
+
 arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "short",
                "plain", "concave", "convex", "circle", "transparent_circle", "dash",
                "skewed_dash", "t_shape", "crows_foot_one_mandatory",
@@ -17,7 +19,7 @@ arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "s
 
 
 class Group:
-    def __init__(self, group_id, parent_graph, label=None, shape="rectangle",
+    def __init__(self, group_id, parent_graph, label=None, label_alignment="center", shape="rectangle",
                  closed="false", font_family="Dialog", underlined_text="false",
                  font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
                  edge_color="#000000", edge_type="line", edge_width="1.0", height=False,
@@ -45,8 +47,13 @@ class Group:
         if font_style not in font_styles:
             raise RuntimeWarning("Font style %s not recognised" % font_style)
 
+        if label_alignment not in label_alignments:
+            raise RuntimeWarning("Label alignment %s not recognised" % label_alignment)
+
         self.font_style = font_style
         self.font_size = font_size
+
+        self.label_alignment = label_alignment
 
         self.fill = fill
         self.transparent = transparent
@@ -98,7 +105,8 @@ class Group:
                               modelPosition="t",
                               fontFamily=self.font_family, fontSize=self.font_size,
                               underlinedText=self.underlined_text,
-                              fontStyle=self.font_style)
+                              fontStyle=self.font_style,
+                              alignment=self.label_alignment)
         label.text = self.label
 
         ET.SubElement(group_node, "y:Shape", type=self.shape)
@@ -116,7 +124,7 @@ class Group:
 
 
 class Node:
-    def __init__(self, node_name, label=None, shape="rectangle", font_family="Dialog",
+    def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", edge_color="#000000",
                  edge_type="line", edge_width="1.0", height=False, width=False, x=False,
@@ -144,8 +152,13 @@ class Node:
         if font_style not in font_styles:
             raise RuntimeWarning("Font style %s not recognised" % font_style)
 
+        if label_alignment not in label_alignments:
+            raise RuntimeWarning("Label alignment %s not recognised" % label_alignment)
+
         self.font_style = font_style
         self.font_size = font_size
+
+        self.label_alignment = label_alignment
 
         # shape fill
         self.shape_fill = shape_fill
@@ -190,7 +203,8 @@ class Node:
         label = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family,
                               fontSize=self.font_size,
                               underlinedText=self.underlined_text,
-                              fontStyle=self.font_style)
+                              fontStyle=self.font_style,
+                              alignment=self.label_alignment)
         label.text = self.label
 
         ET.SubElement(shape, "y:Shape", type=self.shape)
