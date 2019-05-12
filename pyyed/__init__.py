@@ -225,12 +225,12 @@ class Edge:
         self.arrowhead = arrowhead
 
         if arrowfoot not in arrow_types:
-            raise RuntimeWarning("Arrowhead type %s not recognised" % arrowfoot)
+            raise RuntimeWarning("Arrowfoot type %s not recognised" % arrowfoot)
 
         self.arrowfoot = arrowfoot
 
         if line_type not in line_types:
-            raise RuntimeWarning("Edge type %s not recognised" % line_type)
+            raise RuntimeWarning("Line type %s not recognised" % line_type)
 
         self.line_type = line_type
 
