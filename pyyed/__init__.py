@@ -291,15 +291,15 @@ class Graph:
         graph = ET.SubElement(graphml, "graph", edgedefault=self.directed,
                               id=self.graph_id)
 
-        for node_id in self.nodes:
+        for node_id in sorted(self.nodes):
             node = self.nodes[node_id].convert()
             graph.append(node)
 
-        for group_id in self.groups:
+        for group_id in sorted(self.groups):
             node = self.groups[group_id].convert()
             graph.append(node)
 
-        for edge_id in self.edges:
+        for edge_id in sorted(self.edges):
             edge = self.edges[edge_id].convert()
             graph.append(edge)
 
