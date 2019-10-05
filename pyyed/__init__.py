@@ -1,5 +1,5 @@
 import sys
-import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET
 
 node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
                "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
@@ -31,6 +31,7 @@ class Group:
 
         self.group_id = group_id
         self.nodes = {}
+        self.groups = {}
         self.parent_graph = parent_graph
 
         # node shape
@@ -83,6 +84,11 @@ class Group:
         self.nodes[node_name] = Node(node_name, **kwargs)
         self.parent_graph.nodes_in_groups.append(node_name)
 
+    def add_group(self, group_id, **kwargs):
+        print("adding group(%s) to: %s" % (group_id, self.group_id))
+        self.groups[group_id] = Group(group_id, self.parent_graph, **kwargs)
+        return self.groups[group_id]
+
     def convert(self):
         node = ET.Element("node", id=self.group_id)
         node.set("yfiles.foldertype", "group")
@@ -117,6 +123,10 @@ class Group:
 
         for node_id in self.nodes:
             n = self.nodes[node_id].convert()
+            graph.append(n)
+
+        for group_id in self.groups:
+            n = self.groups[group_id].convert()
             graph.append(n)
 
         return node
