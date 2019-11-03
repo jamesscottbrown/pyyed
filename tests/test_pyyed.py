@@ -96,11 +96,35 @@ def test_numeric_node_ids():
     assert g.nodes[1].label == "Node1"
     assert g.nodes[2].label == "Node2"
     
-    print(g.edges.keys())
     node1 = g.edges['1'].node1
     node2 = g.edges['1'].node2
     
     assert g.nodes[node1].label == "Node1"
     assert g.nodes[node2].label == "Node2"
+
+    assert g.get_graph()
+
+def test_multiple_edges():
+    g = pyyed.Graph()
+    g.add_node('a', font_family="Zapfino")
+    g.add_node('b', font_family="Zapfino")
+    g.add_node('c', font_family="Zapfino")
+    
+    g.add_edge('a', 'b')
+    g.add_edge('a', 'b')
+    g.add_edge('a', 'c')
+
+    e1 = g.edges['1']
+    e2 = g.edges['2']
+    e3 = g.edges['3']
+
+    assert g.nodes[e1.node1].label == "a"
+    assert g.nodes[e1.node2].label == "b"
+
+    assert g.nodes[e2.node1].label == "a"
+    assert g.nodes[e2.node2].label == "b"
+    
+    assert g.nodes[e3.node1].label == "a"
+    assert g.nodes[e3.node2].label == "c"
 
     assert g.get_graph()
