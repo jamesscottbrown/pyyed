@@ -96,8 +96,9 @@ def test_numeric_node_ids():
     assert g.nodes[1].label == "Node1"
     assert g.nodes[2].label == "Node2"
     
-    node1 = g.edges['1_2'].node1
-    node2 = g.edges['1_2'].node2
+    print(g.edges.keys())
+    node1 = g.edges['1'].node1
+    node2 = g.edges['1'].node2
     
     assert g.nodes[node1].label == "Node1"
     assert g.nodes[node2].label == "Node2"

@@ -235,15 +235,14 @@ class Node:
 
 
 class Edge:
-
-    edge_index = 1
-
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
-                 color="#000000", line_type="line", width="1.0"):
+                 color="#000000", line_type="line", width="1.0", edge_id=""):
         self.node1 = node1
         self.node2 = node2
-        self.edge_id = str(Edge.edge_index)
-        Edge.edge_index += 1
+
+        if not edge_id:
+            edge_id = "%s_%s" % (node1, node2)
+        self.edge_id = str(edge_id)
 
         self.label = label
 
@@ -286,6 +285,7 @@ class Graph:
         self.nodes_in_groups = []
         self.nodes = {}
         self.edges = {}
+        self.num_edges = 0
 
         self.directed = directed
         self.graph_id = graph_id
@@ -367,7 +367,8 @@ class Graph:
         if node2 not in existing_entities:
             self.nodes[node2] = Node(node2)
 
-        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width)
+        self.num_edges += 1
+        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width, edge_id=self.num_edges)
         self.edges[edge.edge_id] = edge
 
     def add_group(self, group_id, **kwargs):
