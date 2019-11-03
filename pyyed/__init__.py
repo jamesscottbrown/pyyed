@@ -235,11 +235,15 @@ class Node:
 
 
 class Edge:
+
+    edge_index = 1
+
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
                  color="#000000", line_type="line", width="1.0"):
         self.node1 = node1
         self.node2 = node2
-        self.edge_id = "%s_%s" % (node1, node2)
+        self.edge_id = str(Edge.edge_index)
+        Edge.edge_index += 1
 
         self.label = label
 
