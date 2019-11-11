@@ -332,6 +332,9 @@ class Graph:
         for edge_id in self.edges:
             edge = self.edges[edge_id].convert()
             graph.append(edge)
+            
+        #pretty print the tree
+        self.xmlindent(graph)            
 
         self.graphml = graphml
 
