@@ -330,6 +330,9 @@ class Graph:
         for edge_id in self.edges:
             edge = self.edges[edge_id].convert()
             graph.append(edge)
+            
+        #pretty print the tree
+        self.xmlindent(graph) 
 
         self.graphml = graphml
 
@@ -374,3 +377,26 @@ class Graph:
     def add_group(self, group_id, **kwargs):
         self.groups[group_id] = Group(group_id, self, **kwargs)
         return self.groups[group_id]
+      
+    def xmlindent(self, elem, level=0):
+        '''
+        Pretty print XML trees in python.
+        Copy and paste from http://effbot.org/zone/element-lib.htm#prettyprint
+        It basically walks your tree and adds spaces and newlines so the tree is
+        printed in a nice way.
+        Ref: https://norwied.wordpress.com/2013/08/27/307/
+        '''
+        pad = " "
+        i = "\n{}".format(pad * level)
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = "{} ".format(i)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                self.xmlindent(elem, level + 1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
