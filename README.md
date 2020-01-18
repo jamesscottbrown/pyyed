@@ -32,11 +32,18 @@ g.add_node('foobar', label="""Multi
 g.add_edge('foo', 'foo1', label="EDGE!", width="3.0", color="#0000FF", 
                arrowhead="white_diamond", arrowfoot="standard", line_type="dotted")
 
-print g.get_graph()
+print(g.get_graph())
 
 # To write to file:
 with open('test_graph.graphml', 'w') as fp:
     fp.write(g.get_graph())
+
+# Or:
+g.write_graph('example.graphml')
+
+# Or, to pretty-print with whitespace:
+g.write_graph('pretty_example.graphml', pretty_print=True)
+
 ```
 
 Saving this to a file with a ``.graphml`` extension, opening in yEd, applying  ``Tools -> Fit Node to Label`` and ``Layout -> One-click layout`` produces something like the following:

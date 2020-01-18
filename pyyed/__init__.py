@@ -1,5 +1,6 @@
 import sys
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
                "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
@@ -333,10 +334,17 @@ class Graph:
 
         self.graphml = graphml
 
-    def write_graph(self, filename):
+    def write_graph(self, filename, pretty_print=False):
         self.construct_graphml()
-        tree = ET.ElementTree(self.graphml)
-        tree.write(filename)
+
+        if pretty_print:
+            raw_str = ET.tostring(self.graphml)
+            pretty_str = minidom.parseString(raw_str).toprettyxml()
+            with open(filename, 'w') as f:
+                f.write(pretty_str)
+        else:
+            tree = ET.ElementTree(self.graphml)
+            tree.write(filename)
 
     def get_graph(self):
         self.construct_graphml()
