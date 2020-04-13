@@ -373,6 +373,8 @@ class Graph:
         print('==', existing_entities)
         #existing_entities.extend(self.groups.keys())
         existing_entities.update(self.groups.keys())
+        print('===', existing_entities)
+        print()
 
         if node1 not in existing_entities:
             self.nodes[node1] = Node(node1)
