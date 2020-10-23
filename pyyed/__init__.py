@@ -79,16 +79,22 @@ class Group:
         self.edge_type = edge_type
 
     def add_node(self, node_name, **kwargs):
-        if node_name in self.nodes.keys():
+        if node_name in self.parent_graph.existing_entities:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
-        self.nodes[node_name] = Node(node_name, **kwargs)
-        self.parent_graph.nodes_in_groups.append(node_name)
+        node = Node(node_name, **kwargs)
+        self.nodes[node_name] = node
+        self.parent_graph.existing_entities.append(node_name)
+        return node
 
     def add_group(self, group_id, **kwargs):
-        print("adding group(%s) to: %s" % (group_id, self.group_id))
-        self.groups[group_id] = Group(group_id, self.parent_graph, **kwargs)
-        return self.groups[group_id]
+        if group_id in self.parent_graph.existing_entities:
+            raise RuntimeWarning("Node %s already exists" % group_id)
+
+        group = Group(group_id, self.parent_graph, **kwargs)
+        self.groups[group_id] = group
+        self.parent_graph.existing_entities.append(group_id)
+        return group
 
     def convert(self):
         node = ET.Element("node", id=self.group_id)
@@ -283,7 +289,7 @@ class Edge:
 class Graph:
     def __init__(self, directed="directed", graph_id="G"):
 
-        self.nodes_in_groups = []
+        self.existing_entities = []
         self.nodes = {}
         self.edges = {}
         self.num_edges = 0
@@ -320,17 +326,15 @@ class Graph:
         graph = ET.SubElement(graphml, "graph", edgedefault=self.directed,
                               id=self.graph_id)
 
-        for node_id in self.nodes:
-            node = self.nodes[node_id].convert()
-            graph.append(node)
+        for node in self.nodes.values():
+            graph.append(node.convert())
 
-        for group_id in self.groups:
-            node = self.groups[group_id].convert()
-            graph.append(node)
 
-        for edge_id in self.edges:
-            edge = self.edges[edge_id].convert()
-            graph.append(edge)
+        for node in self.groups.values():
+            graph.append(node.convert())
+
+        for edge in self.edges.values():
+            graph.append(edge.convert())
 
         self.graphml = graphml
 
@@ -355,30 +359,37 @@ class Graph:
             return ET.tostring(self.graphml, encoding='UTF-8').decode()
 
     def add_node(self, node_name, **kwargs):
-        if node_name in self.nodes.keys():
+        if node_name in self.existing_entities:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
-        self.nodes[node_name] = Node(node_name, **kwargs)
+        node = Node(node_name, **kwargs)
+        self.nodes[node_name]  = node
+        self.existing_entities.append(node_name)
+        return node
 
     def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
                  color="#000000", line_type="line",
                  width="1.0"):
         # pass node names, not actual node objects
 
-        existing_entities = self.nodes_in_groups
-        existing_entities.extend(self.nodes.keys())
-        existing_entities.extend(self.groups.keys())
-
-        if node1 not in existing_entities:
+        if node1 not in self.existing_entities:
             self.nodes[node1] = Node(node1)
+            self.existing_entities.append(node1)
 
-        if node2 not in existing_entities:
+        if node2 not in self.existing_entities:
             self.nodes[node2] = Node(node2)
+            self.existing_entities.append(node2)
 
         self.num_edges += 1
         edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width, edge_id=self.num_edges)
         self.edges[edge.edge_id] = edge
+        return edge
 
     def add_group(self, group_id, **kwargs):
-        self.groups[group_id] = Group(group_id, self, **kwargs)
-        return self.groups[group_id]
+        if group_id in self.existing_entities:
+            raise RuntimeWarning("Node %s already exists" % group_id)
+
+        group = Group(group_id, self, **kwargs)
+        self.groups[group_id] = group
+        self.existing_entities.append(group_id)
+        return group

@@ -1,6 +1,8 @@
 import pyyed
 import xml.etree.ElementTree as xml
 
+import pytest
+
 
 def test_graph_added_node_has_default_fill():
     g = pyyed.Graph()
@@ -128,3 +130,48 @@ def test_multiple_edges():
     assert g.nodes[e3.node2].label == "c"
 
     assert g.get_graph()
+
+def test_node_already_there_check():
+
+    g = pyyed.Graph()
+    g.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g.add_group('a')
+
+    g = pyyed.Graph()
+    g.add_group('a')
+    with pytest.raises(RuntimeWarning):
+        g.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g.add_group('a')
+
+    g = pyyed.Graph()
+    g.add_edge('a', 'b')
+    with pytest.raises(RuntimeWarning):
+        g.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g.add_group('a')
+    g1 = g.add_group('g1')
+    with pytest.raises(RuntimeWarning):
+        g1.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g1.add_group('a')
+
+    g = pyyed.Graph()
+    g1 = g.add_group('g1')
+    g1.add_node('a')
+    g2 = g.add_group('g2')
+    with pytest.raises(RuntimeWarning):
+        g.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g.add_group('a')
+    with pytest.raises(RuntimeWarning):
+        g1.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g1.add_group('a')
+    with pytest.raises(RuntimeWarning):
+        g2.add_node('a')
+    with pytest.raises(RuntimeWarning):
+        g2.add_group('a')
