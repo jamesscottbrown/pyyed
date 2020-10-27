@@ -30,10 +30,13 @@ class Group:
         if label is None:
             self.label = group_id
 
+        self.parent = None
         self.group_id = group_id
         self.nodes = {}
         self.groups = {}
         self.parent_graph = parent_graph
+        self.edges = {}
+        self.num_edges = 0
 
         # node shape
         if shape not in node_shapes:
@@ -83,8 +86,9 @@ class Group:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
         node = Node(node_name, **kwargs)
+        node.parent = self
         self.nodes[node_name] = node
-        self.parent_graph.existing_entities.append(node_name)
+        self.parent_graph.existing_entities[node_name] = node
         return node
 
     def add_group(self, group_id, **kwargs):
@@ -92,9 +96,42 @@ class Group:
             raise RuntimeWarning("Node %s already exists" % group_id)
 
         group = Group(group_id, self.parent_graph, **kwargs)
+        group.parent = self
         self.groups[group_id] = group
-        self.parent_graph.existing_entities.append(group_id)
+        self.parent_graph.existing_entities[group_id] = group
         return group
+
+    def is_ancestor(self, node):
+        return node.parent is not None and (
+            node.parent is self or self.is_ancestor(node.parent))
+
+    def add_edge(self,  node1_name, node2_name, **kwargs):
+        # pass node names, not actual node objects
+
+        node1 = self.parent_graph.existing_entities.get(node1_name) or \
+            self.add_node(node1_name)
+
+        node2 = self.parent_graph.existing_entities.get(node2_name) or \
+            self.add_node(node2_name)
+
+        # http://graphml.graphdrawing.org/primer/graphml-primer.html#Nested
+        # The edges between two nodes in a nested graph have to be declared in a graph,
+        # which is an ancestor of both nodes in the hierarchy.
+
+        if not (self.is_ancestor(node1) and self.is_ancestor(node2)):
+            raise RuntimeWarning(f"""Group {
+                    self.group_id
+                } is not ancestor of both {
+                    node1_name
+                } and {
+                    node2_name
+                }""")
+
+        self.parent_graph.num_edges += 1
+        kwargs['edge_id'] = str(self.parent_graph.num_edges)
+        edge = Edge(node1_name, node2_name, **kwargs)
+        self.edges[edge.edge_id] = edge
+        return edge
 
     def convert(self):
         node = ET.Element("node", id=self.group_id)
@@ -136,6 +173,10 @@ class Group:
             n = self.groups[group_id].convert()
             graph.append(n)
 
+        for edge_id in self.edges:
+            e = self.edges[edge_id].convert()
+            graph.append(e)
+
         return node
         # ProxyAutoBoundsNode crap just draws bar at top of group
 
@@ -155,6 +196,8 @@ class Node:
 
         self.node_type = node_type
         self.UML = UML
+
+        self.parent = None
 
         # node shape
         if shape not in node_shapes:
@@ -289,13 +332,13 @@ class Edge:
 class Graph:
     def __init__(self, directed="directed", graph_id="G"):
 
-        self.existing_entities = []
         self.nodes = {}
         self.edges = {}
         self.num_edges = 0
 
         self.directed = directed
         self.graph_id = graph_id
+        self.existing_entities = {self.graph_id: self}
 
         self.groups = {}
 
@@ -364,24 +407,21 @@ class Graph:
 
         node = Node(node_name, **kwargs)
         self.nodes[node_name]  = node
-        self.existing_entities.append(node_name)
+        self.existing_entities[node_name] = node
         return node
 
-    def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
-                 color="#000000", line_type="line",
-                 width="1.0"):
+    def add_edge(self,  node1_name, node2_name, **kwargs):
         # pass node names, not actual node objects
 
-        if node1 not in self.existing_entities:
-            self.nodes[node1] = Node(node1)
-            self.existing_entities.append(node1)
+        node1 = self.existing_entities.get(node1_name) or \
+            self.add_node(node1_name)
 
-        if node2 not in self.existing_entities:
-            self.nodes[node2] = Node(node2)
-            self.existing_entities.append(node2)
+        node2 = self.existing_entities.get(node2_name) or \
+            self.add_node(node2_name)
 
         self.num_edges += 1
-        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width, edge_id=self.num_edges)
+        kwargs['edge_id'] = str(self.num_edges)
+        edge = Edge(node1_name, node2_name, **kwargs)
         self.edges[edge.edge_id] = edge
         return edge
 
@@ -391,5 +431,5 @@ class Graph:
 
         group = Group(group_id, self, **kwargs)
         self.groups[group_id] = group
-        self.existing_entities.append(group_id)
+        self.existing_entities[group_id] = group
         return group

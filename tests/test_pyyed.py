@@ -175,3 +175,43 @@ def test_node_already_there_check():
         g2.add_node('a')
     with pytest.raises(RuntimeWarning):
         g2.add_group('a')
+
+def test_nested_graph_edges():
+    g = pyyed.Graph()
+    g.add_edge('a', 'b')
+    g1 = g.add_group('g1')
+    g1n1 = g1.add_node('g1n1')
+    g1n1 = g1.add_node('g1n2')
+    g2 = g1.add_group('g2')
+    g2n1 = g2.add_node('g2n1')
+    g2n2 = g2.add_node('g2n2')
+    g3 = g1.add_group('g3')
+    g3n1 = g3.add_node('g3n1')
+    g3n2 = g3.add_node('g3n2')
+
+    assert g.num_edges == 1
+    g1.add_edge('g1n1', 'g1n2')
+    assert g.num_edges == 2
+    g2.add_edge('g2n2', 'g2n2')  # No, that's not a typo
+    assert g.num_edges == 3
+    g3.add_edge('c', 'd')
+    g3.add_edge('c', 'd')
+    assert g.num_edges == 5
+
+    g.add_edge('g2n1', 'g2n2')
+    g1.add_edge('g2n1', 'g2n2')
+    g2.add_edge('g2n1', 'g2n2')
+    with pytest.raises(RuntimeWarning):
+        g3.add_edge('g2n1', 'g2n2')
+    assert g.num_edges == 8
+
+    with pytest.raises(RuntimeWarning):
+        g2.add_edge('a', 'b')
+
+    g.add_edge('g1n1', 'g2n2')
+    g1.add_edge('g1n1', 'g2n2')
+    with pytest.raises(RuntimeWarning):
+        g2.add_edge('g1n1', 'g2n2')
+    with pytest.raises(RuntimeWarning):
+        g3.add_edge('g1n1', 'g2n2')
+    assert g.num_edges == 10
