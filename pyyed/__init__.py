@@ -23,7 +23,7 @@ class Group:
     def __init__(self, group_id, parent_graph, label=None, label_alignment="center", shape="rectangle",
                  closed="false", font_family="Dialog", underlined_text="false",
                  font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
-                 edge_color="#000000", edge_type="line", edge_width="1.0", height=False,
+                 border_color="#000000", border_type="line", border_width="1.0", height=False,
                  width=False, x=False, y=False):
 
         self.label = label
@@ -73,13 +73,13 @@ class Group:
         if y:
             self.geom["y"] = y
 
-        self.edge_color = edge_color
-        self.edge_width = edge_width
+        self.border_color = border_color
+        self.border_width = border_width
 
-        if edge_type not in line_types:
-            raise RuntimeWarning("Edge type %s not recognised" % edge_type)
+        if border_type not in line_types:
+            raise RuntimeWarning("Border type %s not recognised" % border_type)
 
-        self.edge_type = edge_type
+        self.border_type = border_type
 
     def add_node(self, node_name, **kwargs):
         if node_name in self.parent_graph.existing_entities:
@@ -148,8 +148,8 @@ class Group:
 
         ET.SubElement(group_node, "y:Fill", color=self.fill, transparent=self.transparent)
 
-        ET.SubElement(group_node, "y:BorderStyle", color=self.edge_color,
-                      type=self.edge_type, width=self.edge_width)
+        ET.SubElement(group_node, "y:BorderStyle", color=self.border_color,
+                      type=self.border_type, width=self.border_width)
 
         label = ET.SubElement(group_node, "y:NodeLabel", modelName="internal",
                               modelPosition="t",
@@ -184,8 +184,8 @@ class Group:
 class Node:
     def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
-                 shape_fill="#FF0000", transparent="false", edge_color="#000000",
-                 edge_type="line", edge_width="1.0", height=False, width=False, x=False,
+                 shape_fill="#FF0000", transparent="false", border_color="#000000",
+                 border_type="line", border_width="1.0", height=False, width=False, x=False,
                  y=False, node_type="ShapeNode", UML=False):
 
         self.label = label
@@ -225,13 +225,13 @@ class Node:
         self.transparent = transparent
 
         # edge options
-        self.edge_color = edge_color
-        self.edge_width = edge_width
+        self.border_color = border_color
+        self.border_width = border_width
 
-        if edge_type not in line_types:
-            raise RuntimeWarning("Edge type %s not recognised" % edge_type)
+        if border_type not in line_types:
+            raise RuntimeWarning("Border type %s not recognised" % border_type)
 
-        self.edge_type = edge_type
+        self.border_type = border_type
 
         # geometry
         self.geom = {}
@@ -257,8 +257,8 @@ class Node:
         ET.SubElement(shape, "y:Fill", color=self.shape_fill,
                       transparent=self.transparent)
 
-        ET.SubElement(shape, "y:BorderStyle", color=self.edge_color, type=self.edge_type,
-                      width=self.edge_width)
+        ET.SubElement(shape, "y:BorderStyle", color=self.border_color, type=self.border_type,
+                      width=self.border_width)
 
         label = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family,
                               fontSize=self.font_size,
