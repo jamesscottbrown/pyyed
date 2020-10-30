@@ -237,7 +237,8 @@ class Node:
 
 class Edge:
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
-                 color="#000000", line_type="line", width="1.0", edge_id=""):
+                 color="#000000", line_type="line", width="1.0", edge_id="",
+                 source_label=None, target_label=None):
         self.node1 = node1
         self.node2 = node2
 
@@ -246,6 +247,8 @@ class Edge:
         self.edge_id = str(edge_id)
 
         self.label = label
+        self.source_label = source_label
+	self.target_label = target_label
 
         if arrowhead not in arrow_types:
             raise RuntimeWarning("Arrowhead type %s not recognised" % arrowhead)
@@ -276,6 +279,14 @@ class Edge:
 
         if self.label:
             ET.SubElement(pl, "y:EdgeLabel").text = self.label
+
+        if self.source_label:
+            ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="shead",
+                          preferredPlacement="source_on_edge").text = self.source_label
+
+        if self.target_label:
+            ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="ttail",
+                          preferredPlacement="target_on_edge").text = self.target_label
 
         return edge
 
@@ -362,7 +373,7 @@ class Graph:
 
     def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
                  color="#000000", line_type="line",
-                 width="1.0"):
+                 width="1.0", source_label=None, target_label=None):
         # pass node names, not actual node objects
 
         existing_entities = self.nodes_in_groups
@@ -376,7 +387,9 @@ class Graph:
             self.nodes[node2] = Node(node2)
 
         self.num_edges += 1
-        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width, edge_id=self.num_edges)
+        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, 
+                    line_type, width, edge_id=self.num_edges,
+                    source_label=source_label, target_label=target_label)
         self.edges[edge.edge_id] = edge
 
     def add_group(self, group_id, **kwargs):
