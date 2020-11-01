@@ -224,7 +224,7 @@ class Node:
         self.shape_fill = shape_fill
         self.transparent = transparent
 
-        # edge options
+        # border options
         self.border_color = border_color
         self.border_width = border_width
 
