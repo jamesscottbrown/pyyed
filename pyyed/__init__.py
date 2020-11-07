@@ -281,6 +281,7 @@ class Node:
 class Edge:
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
                  color="#000000", line_type="line", width="1.0", edge_id="",
+                 label_background_color="", label_border_color="",
                  source_label=None, target_label=None):
         self.node1 = node1
         self.node2 = node2
@@ -311,6 +312,9 @@ class Edge:
         self.color = color
         self.width = width
 
+        self.label_background_color = label_background_color
+        self.label_border_color = label_border_color
+
     def convert(self):
         edge = ET.Element("edge", id=str(self.edge_id), source=str(self.node1), target=str(self.node2))
         data = ET.SubElement(edge, "data", key="data_edge")
@@ -321,7 +325,13 @@ class Edge:
                       width=self.width)
 
         if self.label:
-            ET.SubElement(pl, "y:EdgeLabel").text = self.label
+            args = {}
+            if self.label_background_color:
+                args["backgroundColor"] = self.label_background_color
+            if self.label_border_color:
+                args["lineColor"] = self.label_border_color
+
+            ET.SubElement(pl, "y:EdgeLabel", **args).text = self.label
 
         if self.source_label:
             ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="shead",
