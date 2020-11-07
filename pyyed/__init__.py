@@ -324,22 +324,22 @@ class Edge:
         ET.SubElement(pl, "y:LineStyle", color=self.color, type=self.line_type,
                       width=self.width)
 
-        if self.label:
-            args = {}
-            if self.label_background_color:
-                args["backgroundColor"] = self.label_background_color
-            if self.label_border_color:
-                args["lineColor"] = self.label_border_color
+        label_color_args = {}
+        if self.label_background_color:
+            label_color_args["backgroundColor"] = self.label_background_color
+        if self.label_border_color:
+            label_color_args["lineColor"] = self.label_border_color
 
-            ET.SubElement(pl, "y:EdgeLabel", **args).text = self.label
+        if self.label:
+            ET.SubElement(pl, "y:EdgeLabel", **label_color_args).text = self.label
 
         if self.source_label:
             ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="shead",
-                          preferredPlacement="source_on_edge").text = self.source_label
+                          preferredPlacement="source_on_edge", **label_color_args).text = self.source_label
 
         if self.target_label:
             ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="ttail",
-                          preferredPlacement="target_on_edge").text = self.target_label
+                          preferredPlacement="target_on_edge", **label_color_args).text = self.target_label
 
         return edge
 
