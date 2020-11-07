@@ -119,7 +119,7 @@ class Group:
         # which is an ancestor of both nodes in the hierarchy.
 
         if not (self.is_ancestor(node1) and self.is_ancestor(node2)):
-            raise RuntimeWarning(f"Group %s is not ancestor of both %s and %s" % (self.group_id, node1_name, node2_name))
+            raise RuntimeWarning("Group %s is not ancestor of both %s and %s" % (self.group_id, node1_name, node2_name))
 
         self.parent_graph.num_edges += 1
         kwargs['edge_id'] = str(self.parent_graph.num_edges)
