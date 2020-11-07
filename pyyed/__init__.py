@@ -23,17 +23,20 @@ class Group:
     def __init__(self, group_id, parent_graph, label=None, label_alignment="center", shape="rectangle",
                  closed="false", font_family="Dialog", underlined_text="false",
                  font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
-                 edge_color="#000000", edge_type="line", edge_width="1.0", height=False,
+                 border_color="#000000", border_type="line", border_width="1.0", height=False,
                  width=False, x=False, y=False):
 
         self.label = label
         if label is None:
             self.label = group_id
 
+        self.parent = None
         self.group_id = group_id
         self.nodes = {}
         self.groups = {}
         self.parent_graph = parent_graph
+        self.edges = {}
+        self.num_edges = 0
 
         # node shape
         if shape not in node_shapes:
@@ -70,25 +73,59 @@ class Group:
         if y:
             self.geom["y"] = y
 
-        self.edge_color = edge_color
-        self.edge_width = edge_width
+        self.border_color = border_color
+        self.border_width = border_width
 
-        if edge_type not in line_types:
-            raise RuntimeWarning("Edge type %s not recognised" % edge_type)
+        if border_type not in line_types:
+            raise RuntimeWarning("Border type %s not recognised" % border_type)
 
-        self.edge_type = edge_type
+        self.border_type = border_type
 
     def add_node(self, node_name, **kwargs):
-        if node_name in self.nodes.keys():
+        if node_name in self.parent_graph.existing_entities:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
-        self.nodes[node_name] = Node(node_name, **kwargs)
-        self.parent_graph.nodes_in_groups.append(node_name)
+        node = Node(node_name, **kwargs)
+        node.parent = self
+        self.nodes[node_name] = node
+        self.parent_graph.existing_entities[node_name] = node
+        return node
 
     def add_group(self, group_id, **kwargs):
-        print("adding group(%s) to: %s" % (group_id, self.group_id))
-        self.groups[group_id] = Group(group_id, self.parent_graph, **kwargs)
-        return self.groups[group_id]
+        if group_id in self.parent_graph.existing_entities:
+            raise RuntimeWarning("Node %s already exists" % group_id)
+
+        group = Group(group_id, self.parent_graph, **kwargs)
+        group.parent = self
+        self.groups[group_id] = group
+        self.parent_graph.existing_entities[group_id] = group
+        return group
+
+    def is_ancestor(self, node):
+        return node.parent is not None and (
+            node.parent is self or self.is_ancestor(node.parent))
+
+    def add_edge(self,  node1_name, node2_name, **kwargs):
+        # pass node names, not actual node objects
+
+        node1 = self.parent_graph.existing_entities.get(node1_name) or \
+            self.add_node(node1_name)
+
+        node2 = self.parent_graph.existing_entities.get(node2_name) or \
+            self.add_node(node2_name)
+
+        # http://graphml.graphdrawing.org/primer/graphml-primer.html#Nested
+        # The edges between two nodes in a nested graph have to be declared in a graph,
+        # which is an ancestor of both nodes in the hierarchy.
+
+        if not (self.is_ancestor(node1) and self.is_ancestor(node2)):
+            raise RuntimeWarning(f"Group %s is not ancestor of both %s and %s" % (self.group_id, node1_name, node2_name))
+
+        self.parent_graph.num_edges += 1
+        kwargs['edge_id'] = str(self.parent_graph.num_edges)
+        edge = Edge(node1_name, node2_name, **kwargs)
+        self.edges[edge.edge_id] = edge
+        return edge
 
     def convert(self):
         node = ET.Element("node", id=self.group_id)
@@ -105,8 +142,8 @@ class Group:
 
         ET.SubElement(group_node, "y:Fill", color=self.fill, transparent=self.transparent)
 
-        ET.SubElement(group_node, "y:BorderStyle", color=self.edge_color,
-                      type=self.edge_type, width=self.edge_width)
+        ET.SubElement(group_node, "y:BorderStyle", color=self.border_color,
+                      type=self.border_type, width=self.border_width)
 
         label = ET.SubElement(group_node, "y:NodeLabel", modelName="internal",
                               modelPosition="t",
@@ -130,6 +167,10 @@ class Group:
             n = self.groups[group_id].convert()
             graph.append(n)
 
+        for edge_id in self.edges:
+            e = self.edges[edge_id].convert()
+            graph.append(e)
+
         return node
         # ProxyAutoBoundsNode crap just draws bar at top of group
 
@@ -137,8 +178,8 @@ class Group:
 class Node:
     def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
-                 shape_fill="#FF0000", transparent="false", edge_color="#000000",
-                 edge_type="line", edge_width="1.0", height=False, width=False, x=False,
+                 shape_fill="#FF0000", transparent="false", border_color="#000000",
+                 border_type="line", border_width="1.0", height=False, width=False, x=False,
                  y=False, node_type="ShapeNode", UML=False):
 
         self.label = label
@@ -149,6 +190,8 @@ class Node:
 
         self.node_type = node_type
         self.UML = UML
+
+        self.parent = None
 
         # node shape
         if shape not in node_shapes:
@@ -175,14 +218,14 @@ class Node:
         self.shape_fill = shape_fill
         self.transparent = transparent
 
-        # edge options
-        self.edge_color = edge_color
-        self.edge_width = edge_width
+        # border options
+        self.border_color = border_color
+        self.border_width = border_width
 
-        if edge_type not in line_types:
-            raise RuntimeWarning("Edge type %s not recognised" % edge_type)
+        if border_type not in line_types:
+            raise RuntimeWarning("Border type %s not recognised" % border_type)
 
-        self.edge_type = edge_type
+        self.border_type = border_type
 
         # geometry
         self.geom = {}
@@ -208,8 +251,8 @@ class Node:
         ET.SubElement(shape, "y:Fill", color=self.shape_fill,
                       transparent=self.transparent)
 
-        ET.SubElement(shape, "y:BorderStyle", color=self.edge_color, type=self.edge_type,
-                      width=self.edge_width)
+        ET.SubElement(shape, "y:BorderStyle", color=self.border_color, type=self.border_type,
+                      width=self.border_width)
 
         label = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family,
                               fontSize=self.font_size,
@@ -283,13 +326,13 @@ class Edge:
 class Graph:
     def __init__(self, directed="directed", graph_id="G"):
 
-        self.nodes_in_groups = []
         self.nodes = {}
         self.edges = {}
         self.num_edges = 0
 
         self.directed = directed
         self.graph_id = graph_id
+        self.existing_entities = {self.graph_id: self}
 
         self.groups = {}
 
@@ -320,17 +363,15 @@ class Graph:
         graph = ET.SubElement(graphml, "graph", edgedefault=self.directed,
                               id=self.graph_id)
 
-        for node_id in self.nodes:
-            node = self.nodes[node_id].convert()
-            graph.append(node)
+        for node in self.nodes.values():
+            graph.append(node.convert())
 
-        for group_id in self.groups:
-            node = self.groups[group_id].convert()
-            graph.append(node)
 
-        for edge_id in self.edges:
-            edge = self.edges[edge_id].convert()
-            graph.append(edge)
+        for node in self.groups.values():
+            graph.append(node.convert())
+
+        for edge in self.edges.values():
+            graph.append(edge.convert())
 
         self.graphml = graphml
 
@@ -355,30 +396,34 @@ class Graph:
             return ET.tostring(self.graphml, encoding='UTF-8').decode()
 
     def add_node(self, node_name, **kwargs):
-        if node_name in self.nodes.keys():
+        if node_name in self.existing_entities:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
-        self.nodes[node_name] = Node(node_name, **kwargs)
+        node = Node(node_name, **kwargs)
+        self.nodes[node_name]  = node
+        self.existing_entities[node_name] = node
+        return node
 
-    def add_edge(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
-                 color="#000000", line_type="line",
-                 width="1.0"):
+    def add_edge(self,  node1_name, node2_name, **kwargs):
         # pass node names, not actual node objects
 
-        existing_entities = self.nodes_in_groups
-        existing_entities.extend(self.nodes.keys())
-        existing_entities.extend(self.groups.keys())
+        node1 = self.existing_entities.get(node1_name) or \
+            self.add_node(node1_name)
 
-        if node1 not in existing_entities:
-            self.nodes[node1] = Node(node1)
-
-        if node2 not in existing_entities:
-            self.nodes[node2] = Node(node2)
+        node2 = self.existing_entities.get(node2_name) or \
+            self.add_node(node2_name)
 
         self.num_edges += 1
-        edge = Edge(node1, node2, label, arrowhead, arrowfoot, color, line_type, width, edge_id=self.num_edges)
+        kwargs['edge_id'] = str(self.num_edges)
+        edge = Edge(node1_name, node2_name, **kwargs)
         self.edges[edge.edge_id] = edge
+        return edge
 
     def add_group(self, group_id, **kwargs):
-        self.groups[group_id] = Group(group_id, self, **kwargs)
-        return self.groups[group_id]
+        if group_id in self.existing_entities:
+            raise RuntimeWarning("Node %s already exists" % group_id)
+
+        group = Group(group_id, self, **kwargs)
+        self.groups[group_id] = group
+        self.existing_entities[group_id] = group
+        return group
