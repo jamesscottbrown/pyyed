@@ -46,11 +46,7 @@ class CustomPropertyDefinition():
         custom_prop_key.set("for", self.scope)
         custom_prop_key.set("attr.name", self.name)
         custom_prop_key.set("attr.type", self.property_type)
-        '''
-        if self.default_value:
-            custom_prop_default = ET.SubElement(custom_prop_key, "default")
-            custom_prop_default.text = self.default_value
-        '''
+
         return custom_prop_key        
 
 
