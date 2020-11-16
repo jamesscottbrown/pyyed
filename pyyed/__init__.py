@@ -542,9 +542,9 @@ class Graph:
             raise RuntimeWarning("Scope %s not recognised" % scope)
         if property_type not in custom_property_types:
             raise RuntimeWarning("Property Type %s not recognised" % property_type)
-        custom_property = CustomPropertyDefinition(scope, name, property_type, default_value)
         if type(default_value) != str:
             raise RuntimeWarning("default_value %s needs to be a string" % default_value)
+        custom_property = CustomPropertyDefinition(scope, name, property_type, default_value)
         self.custom_properties.append(custom_property)
         if scope == "node":
             Node.set_custom_properties_defs(custom_property)
