@@ -38,7 +38,7 @@ class CustomPropertyDefinition():
         self.name = name
         self.property_type = property_type
         self.default_value = default_value
-        self.id = "{}_{}".format(self.scope, self.name)
+        self.id = "%s_%s" % (self.scope, self.name)
      
     def convert(self):
 
