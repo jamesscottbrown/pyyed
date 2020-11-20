@@ -19,6 +19,37 @@ arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "s
                "crows_foot_many", "crows_foot_optional"]
 
 
+custom_property_scopes = ["node", "edge"]
+
+custom_property_types = ["string", "int", "double", "boolean"]
+
+
+class CustomPropertyDefinition():
+
+    def __init__(self, scope, name, property_type, default_value): 
+        '''
+        scope: [node|edge]
+        name: name of the custom property
+        property_type: [string|boolean|int|double]
+                        boolean: Java keywords [true|false]
+        default_value: any above datatype represented as a string
+        '''
+        self.scope = scope
+        self.name = name
+        self.property_type = property_type
+        self.default_value = default_value
+        self.id = "%s_%s" % (self.scope, self.name)
+     
+    def convert(self):
+
+        custom_prop_key = ET.Element("key", id=self.id)
+        custom_prop_key.set("for", self.scope)
+        custom_prop_key.set("attr.name", self.name)
+        custom_prop_key.set("attr.type", self.property_type)
+
+        return custom_prop_key        
+
+
 class Group:
     def __init__(self, group_id, parent_graph, label=None, label_alignment="center", shape="rectangle",
                  closed="false", font_family="Dialog", underlined_text="false",
@@ -176,11 +207,14 @@ class Group:
 
 
 class Node:
+    
+    custom_properties_defs = {}
+    
     def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", border_color="#000000",
                  border_type="line", border_width="1.0", height=False, width=False, x=False,
-                 y=False, node_type="ShapeNode", UML=False):
+                 y=False, node_type="ShapeNode", UML=False, custom_properties=None):
 
         self.label = label
         if label is None:
@@ -238,6 +272,20 @@ class Node:
         if y:
             self.geom["y"] = y
 
+        # Handle Node Custom Properties
+        for name, definition in Node.custom_properties_defs.items():
+            if custom_properties:
+                for k,v in custom_properties.items():
+                    if k not in Node.custom_properties_defs:
+                        raise RuntimeWarning("key %s not recognised" % k)
+                    if name == k:
+                        setattr(self, name, custom_properties[k])
+                        break
+                else:
+                    setattr(self, name, definition.default_value)
+            else:
+                setattr(self, name, definition.default_value)
+
     def convert(self):
 
         node = ET.Element("node", id=str(self.node_name))
@@ -275,14 +323,26 @@ class Node:
             stereotype = self.UML["stereotype"] if "stereotype" in self.UML else ""
             UML.set("stereotype", stereotype)
 
+        # Node Custom Properties
+        for name,definition in Node.custom_properties_defs.items():
+            node_custom_prop = ET.SubElement(node, "data", key=definition.id)
+            node_custom_prop.text = getattr(self, name)
+
         return node
+ 
+    @classmethod
+    def set_custom_properties_defs(cls, custom_property):
+        cls.custom_properties_defs[custom_property.name] = custom_property
 
 
 class Edge:
+    
+    custom_properties_defs = {}
+
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
                  color="#000000", line_type="line", width="1.0", edge_id="",
                  label_background_color="", label_border_color="",
-                 source_label=None, target_label=None):
+                 source_label=None, target_label=None, custom_properties=None):
         self.node1 = node1
         self.node2 = node2
 
@@ -315,6 +375,20 @@ class Edge:
         self.label_background_color = label_background_color
         self.label_border_color = label_border_color
 
+        # Handle Edge Custom Properties
+        for name, definition in Edge.custom_properties_defs.items():
+            if custom_properties:
+                for k,v in custom_properties.items():
+                    if k not in Edge.custom_properties_defs:
+                        raise RuntimeWarning("key %s not recognised" % k)
+                    if name == k:
+                        setattr(self, name, custom_properties[k])
+                        break
+                else:
+                    setattr(self, name, definition.default_value)
+            else:
+                setattr(self, name, definition.default_value)
+
     def convert(self):
         edge = ET.Element("edge", id=str(self.edge_id), source=str(self.node1), target=str(self.node2))
         data = ET.SubElement(edge, "data", key="data_edge")
@@ -341,7 +415,17 @@ class Edge:
             ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="ttail",
                           preferredPlacement="target_on_edge", **label_color_args).text = self.target_label
 
+        # Edge Custom Properties
+        for name,definition in Edge.custom_properties_defs.items():
+            edge_custom_prop = ET.SubElement(edge, "data", key=definition.id)
+            edge_custom_prop.text = getattr(self, name)
+
         return edge
+
+    #
+    @classmethod
+    def set_custom_properties_defs(cls, custom_property):
+         cls.custom_properties_defs[custom_property.name] = custom_property
 
 
 class Graph:
@@ -356,6 +440,8 @@ class Graph:
         self.existing_entities = {self.graph_id: self}
 
         self.groups = {}
+ 
+        self.custom_properties = []
 
         self.graphml = ""
 
@@ -376,6 +462,9 @@ class Graph:
         node_key = ET.SubElement(graphml, "key", id="data_node")
         node_key.set("for", "node")
         node_key.set("yfiles.type", "nodegraphics")
+        
+        for prop in self.custom_properties:
+            graphml.append(prop.convert())
 
         edge_key = ET.SubElement(graphml, "key", id="data_edge")
         edge_key.set("for", "edge")
@@ -386,7 +475,6 @@ class Graph:
 
         for node in self.nodes.values():
             graph.append(node.convert())
-
 
         for node in self.groups.values():
             graph.append(node.convert())
@@ -448,3 +536,20 @@ class Graph:
         self.groups[group_id] = group
         self.existing_entities[group_id] = group
         return group
+
+    def define_custom_property(self, scope, name, property_type, default_value):
+        if scope not in custom_property_scopes:
+            raise RuntimeWarning("Scope %s not recognised" % scope)
+        if property_type not in custom_property_types:
+            raise RuntimeWarning("Property Type %s not recognised" % property_type)
+        if type(default_value) != str:
+            raise RuntimeWarning("default_value %s needs to be a string" % default_value)
+        custom_property = CustomPropertyDefinition(scope, name, property_type, default_value)
+        self.custom_properties.append(custom_property)
+        if scope == "node":
+            Node.set_custom_properties_defs(custom_property)
+        elif scope == "edge":
+            Edge.set_custom_properties_defs(custom_property)
+
+
+
