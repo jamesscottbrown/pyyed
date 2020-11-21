@@ -93,7 +93,7 @@ def test_numeric_node_ids():
     g = pyyed.Graph()
     g.add_node(1, label="Node1")
     g.add_node(2, label="Node2")
-    g.add_edge(1,2)
+    g.add_edge(1, 2)
 
     assert g.nodes[1].label == "Node1"
     assert g.nodes[2].label == "Node2"
@@ -105,6 +105,7 @@ def test_numeric_node_ids():
     assert g.nodes[node2].label == "Node2"
 
     assert g.get_graph()
+
 
 def test_multiple_edges():
     g = pyyed.Graph()
@@ -130,6 +131,7 @@ def test_multiple_edges():
     assert g.nodes[e3.node2].label == "c"
 
     assert g.get_graph()
+
 
 def test_node_already_there_check():
 
@@ -175,6 +177,7 @@ def test_node_already_there_check():
         g2.add_node('a')
     with pytest.raises(RuntimeWarning):
         g2.add_group('a')
+
 
 def test_nested_graph_edges():
     g = pyyed.Graph()

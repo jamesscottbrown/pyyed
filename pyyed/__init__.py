@@ -24,16 +24,16 @@ custom_property_scopes = ["node", "edge"]
 custom_property_types = ["string", "int", "double", "boolean"]
 
 
-class CustomPropertyDefinition():
+class CustomPropertyDefinition:
 
-    def __init__(self, scope, name, property_type, default_value): 
-        '''
+    def __init__(self, scope, name, property_type, default_value):
+        """
         scope: [node|edge]
         name: name of the custom property
         property_type: [string|boolean|int|double]
                         boolean: Java keywords [true|false]
         default_value: any above datatype represented as a string
-        '''
+        """
         self.scope = scope
         self.name = name
         self.property_type = property_type
@@ -275,7 +275,7 @@ class Node:
         # Handle Node Custom Properties
         for name, definition in Node.custom_properties_defs.items():
             if custom_properties:
-                for k,v in custom_properties.items():
+                for k, v in custom_properties.items():
                     if k not in Node.custom_properties_defs:
                         raise RuntimeWarning("key %s not recognised" % k)
                     if name == k:
@@ -324,7 +324,7 @@ class Node:
             UML.set("stereotype", stereotype)
 
         # Node Custom Properties
-        for name,definition in Node.custom_properties_defs.items():
+        for name, definition in Node.custom_properties_defs.items():
             node_custom_prop = ET.SubElement(node, "data", key=definition.id)
             node_custom_prop.text = getattr(self, name)
 
@@ -378,7 +378,7 @@ class Edge:
         # Handle Edge Custom Properties
         for name, definition in Edge.custom_properties_defs.items():
             if custom_properties:
-                for k,v in custom_properties.items():
+                for k, v in custom_properties.items():
                     if k not in Edge.custom_properties_defs:
                         raise RuntimeWarning("key %s not recognised" % k)
                     if name == k:
@@ -416,7 +416,7 @@ class Edge:
                           preferredPlacement="target_on_edge", **label_color_args).text = self.target_label
 
         # Edge Custom Properties
-        for name,definition in Edge.custom_properties_defs.items():
+        for name, definition in Edge.custom_properties_defs.items():
             edge_custom_prop = ET.SubElement(edge, "data", key=definition.id)
             edge_custom_prop.text = getattr(self, name)
 
@@ -425,7 +425,7 @@ class Edge:
     #
     @classmethod
     def set_custom_properties_defs(cls, custom_property):
-         cls.custom_properties_defs[custom_property.name] = custom_property
+        cls.custom_properties_defs[custom_property.name] = custom_property
 
 
 class Graph:
@@ -509,18 +509,15 @@ class Graph:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
         node = Node(node_name, **kwargs)
-        self.nodes[node_name]  = node
+        self.nodes[node_name] = node
         self.existing_entities[node_name] = node
         return node
 
     def add_edge(self,  node1_name, node2_name, **kwargs):
         # pass node names, not actual node objects
 
-        node1 = self.existing_entities.get(node1_name) or \
-            self.add_node(node1_name)
-
-        node2 = self.existing_entities.get(node2_name) or \
-            self.add_node(node2_name)
+        self.existing_entities.get(node1_name) or self.add_node(node1_name)
+        self.existing_entities.get(node2_name) or self.add_node(node2_name)
 
         self.num_edges += 1
         kwargs['edge_id'] = str(self.num_edges)
