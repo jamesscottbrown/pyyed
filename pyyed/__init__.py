@@ -55,7 +55,7 @@ class Group:
                  closed="false", font_family="Dialog", underlined_text="false",
                  font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
                  border_color="#000000", border_type="line", border_width="1.0", height=False,
-                 width=False, x=False, y=False):
+                 width=False, x=False, y=False, description="", url=""):
 
         self.label = label
         if label is None:
@@ -111,6 +111,9 @@ class Group:
             raise RuntimeWarning("Border type %s not recognised" % border_type)
 
         self.border_type = border_type
+
+        self.description = description
+        self.url = url
 
     def add_node(self, node_name, **kwargs):
         if node_name in self.parent_graph.existing_entities:
@@ -190,6 +193,14 @@ class Group:
 
         graph = ET.SubElement(node, "graph", edgedefault="directed", id=self.group_id)
 
+        if self.url:
+            url_node = ET.SubElement(node, "data", key="url_node")
+            url_node.text = self.url
+
+        if self.description:
+            description_node = ET.SubElement(node, "data", key="description_node")
+            description_node.text = self.description
+
         for node_id in self.nodes:
             n = self.nodes[node_id].convert()
             graph.append(n)
@@ -214,7 +225,8 @@ class Node:
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", border_color="#000000",
                  border_type="line", border_width="1.0", height=False, width=False, x=False,
-                 y=False, node_type="ShapeNode", UML=False, custom_properties=None):
+                 y=False, node_type="ShapeNode", UML=False,
+                 custom_properties=None, description="", url=""):
 
         self.label = label
         if label is None:
@@ -272,6 +284,9 @@ class Node:
         if y:
             self.geom["y"] = y
 
+        self.description = description
+        self.url = url
+
         # Handle Node Custom Properties
         for name, definition in Node.custom_properties_defs.items():
             if custom_properties:
@@ -323,6 +338,14 @@ class Node:
             stereotype = self.UML["stereotype"] if "stereotype" in self.UML else ""
             UML.set("stereotype", stereotype)
 
+        if self.url:
+            url_node = ET.SubElement(node, "data", key="url_node")
+            url_node.text = self.url
+
+        if self.description:
+            description_node = ET.SubElement(node, "data", key="description_node")
+            description_node.text = self.description
+
         # Node Custom Properties
         for name, definition in Node.custom_properties_defs.items():
             node_custom_prop = ET.SubElement(node, "data", key=definition.id)
@@ -342,7 +365,8 @@ class Edge:
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
                  color="#000000", line_type="line", width="1.0", edge_id="",
                  label_background_color="", label_border_color="",
-                 source_label=None, target_label=None, custom_properties=None):
+                 source_label=None, target_label=None,
+                 custom_properties=None, description="", url=""):
         self.node1 = node1
         self.node2 = node2
 
@@ -374,6 +398,9 @@ class Edge:
 
         self.label_background_color = label_background_color
         self.label_border_color = label_border_color
+
+        self.description = description
+        self.url = url
 
         # Handle Edge Custom Properties
         for name, definition in Edge.custom_properties_defs.items():
@@ -414,6 +441,14 @@ class Edge:
         if self.target_label:
             ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="ttail",
                           preferredPlacement="target_on_edge", **label_color_args).text = self.target_label
+
+        if self.url:
+            url_edge = ET.SubElement(edge, "data", key="url_edge")
+            url_edge.text = self.url
+
+        if self.description:
+            description_edge = ET.SubElement(edge, "data", key="description_edge")
+            description_edge.text = self.description
 
         # Edge Custom Properties
         for name, definition in Edge.custom_properties_defs.items():
@@ -462,7 +497,32 @@ class Graph:
         node_key = ET.SubElement(graphml, "key", id="data_node")
         node_key.set("for", "node")
         node_key.set("yfiles.type", "nodegraphics")
+
+        # Definition: url for Node
+        node_key = ET.SubElement(graphml, "key", id="url_node")
+        node_key.set("for", "node")
+        node_key.set("attr.name", "url")
+        node_key.set("attr.type", "string")
+
+        # Definition: description for Node
+        node_key = ET.SubElement(graphml, "key", id="description_node")
+        node_key.set("for", "node")
+        node_key.set("attr.name", "description")
+        node_key.set("attr.type", "string")
+
+        # Definition: url for Edge
+        node_key = ET.SubElement(graphml, "key", id="url_edge")
+        node_key.set("for", "edge")
+        node_key.set("attr.name", "url")
+        node_key.set("attr.type", "string")
+
+        # Definition: description for Edge
+        node_key = ET.SubElement(graphml, "key", id="description_edge")
+        node_key.set("for", "edge")
+        node_key.set("attr.name", "description")
+        node_key.set("attr.type", "string")
         
+        # Definition: Custom Properties for Nodes and Edges
         for prop in self.custom_properties:
             graphml.append(prop.convert())
 
