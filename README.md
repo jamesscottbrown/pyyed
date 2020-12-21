@@ -51,11 +51,11 @@ Saving this to a file with a ``.graphml`` extension, opening in yEd, applying  `
 ![](example.png)
 
 ### UML
-The file ``demo.py``, includes an example UML diagram:
+The file [``examples/demo-uml.py``](./examples/demo-uml.py), includes an example UML diagram:
 
 ![](example-UML.png)
 
-The arrowheads used in UML class diagrams diagrams correspond to ``crows_foot_one_optional`` (association or dependency), ``white_delta`` (inheritance or implementation), ``white_diamond`` (aggregation), and ``diamond`` (composition).
+The arrowheads used in UML class diagrams correspond to ``crows_foot_one_optional`` (association or dependency), ``white_delta`` (inheritance or implementation), ``white_diamond`` (aggregation), and ``diamond`` (composition).
 
  The ``line_type`` is either ``line`` or ``dashed``.
 
