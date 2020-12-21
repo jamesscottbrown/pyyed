@@ -68,7 +68,8 @@ Node Custom Properties will show up into the yEd 'Structure View Window'.
 
 All Custom Properties definitions should be populated into the 'Manage Custom Properties Menu'
 
-To select Nodes & Edges based on Custom Properties open yEd 'Tools Menu' -> 'Select Elements' and define criteria in the 'Nodes' and 'Edges' tabs
+To select Nodes & Edges based on Custom Properties open yEd 'Tools Menu' -> 'Select Elements' and define criteria in
+the 'Nodes' and 'Edges' tabs
 """)
 print(40 * "=")
 print("")

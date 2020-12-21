@@ -39,7 +39,7 @@ class CustomPropertyDefinition:
         self.property_type = property_type
         self.default_value = default_value
         self.id = "%s_%s" % (self.scope, self.name)
-     
+
     def convert(self):
 
         custom_prop_key = ET.Element("key", id=self.id)
@@ -47,7 +47,7 @@ class CustomPropertyDefinition:
         custom_prop_key.set("attr.name", self.name)
         custom_prop_key.set("attr.type", self.property_type)
 
-        return custom_prop_key        
+        return custom_prop_key
 
 
 class Group:
@@ -218,9 +218,9 @@ class Group:
 
 
 class Node:
-    
+
     custom_properties_defs = {}
-    
+
     def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", border_color="#000000",
@@ -327,12 +327,12 @@ class Node:
         ET.SubElement(shape, "y:Shape", type=self.shape)
 
         if self.UML:
-            UML = ET.SubElement(shape, "y:UML")  
+            UML = ET.SubElement(shape, "y:UML")
 
-            attributes = ET.SubElement(UML, "y:AttributeLabel", type=self.shape)  
+            attributes = ET.SubElement(UML, "y:AttributeLabel", type=self.shape)
             attributes.text = self.UML["attributes"]
 
-            methods = ET.SubElement(UML, "y:MethodLabel", type=self.shape)  
+            methods = ET.SubElement(UML, "y:MethodLabel", type=self.shape)
             methods.text = self.UML["methods"]
 
             stereotype = self.UML["stereotype"] if "stereotype" in self.UML else ""
@@ -352,14 +352,14 @@ class Node:
             node_custom_prop.text = getattr(self, name)
 
         return node
- 
+
     @classmethod
     def set_custom_properties_defs(cls, custom_property):
         cls.custom_properties_defs[custom_property.name] = custom_property
 
 
 class Edge:
-    
+
     custom_properties_defs = {}
 
     def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
@@ -475,7 +475,7 @@ class Graph:
         self.existing_entities = {self.graph_id: self}
 
         self.groups = {}
- 
+
         self.custom_properties = []
 
         self.graphml = ""
@@ -521,7 +521,7 @@ class Graph:
         node_key.set("for", "edge")
         node_key.set("attr.name", "description")
         node_key.set("attr.type", "string")
-        
+
         # Definition: Custom Properties for Nodes and Edges
         for prop in self.custom_properties:
             graphml.append(prop.convert())
@@ -607,6 +607,3 @@ class Graph:
             Node.set_custom_properties_defs(custom_property)
         elif scope == "edge":
             Edge.set_custom_properties_defs(custom_property)
-
-
-

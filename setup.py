@@ -14,6 +14,6 @@ setup(name='pyyed',
       url='https://github.com/jamesscottbrown/pyyed',
 
       packages=['pyyed'],
-      
+
       requires=[]
       )

@@ -34,5 +34,3 @@ g.add_edge('foo2', 'abc')
 g.add_edge('foo', 'MY_Group')
 
 print(g.get_graph())
-
-
