@@ -1,3 +1,6 @@
+[![PyPI](https://img.shields.io/pypi/v/pyyed)](https://pypi.org/project/pyyed)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/pyyed)](https://pypi.org/project/pyyed)
+
 # yEd Py
 
 A simple Python library to export networks to [yEd](http://www.yworks.com/en/products_yed_about.html).
