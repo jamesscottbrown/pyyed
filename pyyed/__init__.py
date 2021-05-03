@@ -244,10 +244,40 @@ class NodeLabel:
             raise RuntimeWarning("vertical_text_position '%s' is not supported. Please use '%s'" % (vertical_text_position, "', '".join(vertical_alignments)) )
         self.__params["verticalTextPosition"] = vertical_text_position
 
+        if alignment not in horizontal_alignments:
+            raise RuntimeWarning("alignment '%s' is not supported. Please use '%s'" % (alignment, "', '".join(horizontal_alignments)) )
+        self.__params["alignment"] = alignment
 
+        if font_style not in font_styles:
+            raise RuntimeWarning("font_style '%s' is not supported. Please use '%s'" % (font_style, "', '".join(font_styles)) )
+        self.__params["fontStyle"] = font_style
+        
+        if model_name not in NodeLabel.modelParamsValid.keys():
+            raise RuntimeWarning("model_name '%s' is not supported. Please use '%s'" % (model_name, "', '".join(nodeLabel.modelParamsValid.keys())) )
+        self.__params["modelName"] = model_name
+
+        if model_position not in NodeLabel.modelParamsValid[model_name]:
+            raise RuntimeWarning("model_position '%s' is not supported. Please use '%s'" % (model_position, "', '".join(NodeLabel.modelParamsValid[model_name])) )
+        self.__params["modelPosition"] = model_position
+
+        #TODO: Implement range checks
+        self.__params["fontFamily"] = font_family
+        self.__params["font_size"] = font_size
+        self.__params["textColor"] = text_color
+        self.__params["visible"]=visible
+        self.__params["underlinedText"]= underlined_text
+        self.__params["hasBackgroundColor"]= has_background_color
+        self.__params["width"] = width
+        self.__params["height"] = height
+
+    def addSubElement(self, shape):
+        label = ET.SubElement(shape, "y:NodeLabel", **self.__params)
+        label.text = self.__text
+
+class Node:
     custom_properties_defs = {}
 
-    def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
+    def __init__(self, node_name, labels = [], label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", border_color="#000000",
                  border_type="line", border_width="1.0", height=False, width=False, x=False,
