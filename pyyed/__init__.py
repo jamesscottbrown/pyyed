@@ -10,7 +10,8 @@ node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse
 line_types = ["line", "dashed", "dotted", "dashed_dotted"]
 font_styles = ["plain", "bold", "italic", "bolditalic"]
 
-label_alignments = ['left', 'center', 'right']
+horizontal_alignments = ['left', 'center', 'right']
+vertical_alignments = ['top', 'center', 'bottom']
 
 arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "short",
                "plain", "concave", "convex", "circle", "transparent_circle", "dash",
@@ -83,7 +84,7 @@ class Group:
         if font_style not in font_styles:
             raise RuntimeWarning("Font style %s not recognised" % font_style)
 
-        if label_alignment not in label_alignments:
+        if label_alignment not in horizontal_alignments:
             raise RuntimeWarning("Label alignment %s not recognised" % label_alignment)
 
         self.font_style = font_style
@@ -185,6 +186,7 @@ class Group:
                               underlinedText=self.underlined_text,
                               fontStyle=self.font_style,
                               alignment=self.label_alignment)
+
         label.text = self.label
 
         ET.SubElement(group_node, "y:Shape", type=self.shape)
@@ -217,7 +219,31 @@ class Group:
         # ProxyAutoBoundsNode crap just draws bar at top of group
 
 
-class Node:
+class NodeLabel:
+    modelParamsValid = {
+        "internal" : ["u", "b", "c", "l", "r", "ul", "ur", "bl", "br"],
+        "corners" : ["nw", "ne", "sw" , "se"],
+        "sandwich" : ["n", "s"],
+        "sides" : ["n", "e", "s", "w"],
+        "eight_pos" : ["n", "e", "s", "w", "nw", "ne", "sw" , "se"]
+    }
+
+    def __init__(self, text, alignment="center", font_family="Dialog", font_size="12", font_style="plain", height="18.1328125", 
+                    horizontalTextPosition="center", model_name ="internal", model_position ="c", underlined_text = "false", 
+                    text_color="#000000", horizontal_text_position="center", vertical_text_position="center", visible="true",  
+                    has_background_color="false", width="55.708984375"):  
+        
+        self.__text = text # Initialize dictionary for parameters
+        self.__params = {}        
+
+        if horizontal_text_position not in horizontal_alignments:
+            raise RuntimeWarning("horizontal_text_position '%s' is not supported. Please use '%s'" % (horizontal_text_position, "', '".join(horizontal_alignments)) )
+        self.__params["horizontalTextPosition"] = horizontal_text_position
+
+        if vertical_text_position not in vertical_alignments:
+            raise RuntimeWarning("vertical_text_position '%s' is not supported. Please use '%s'" % (vertical_text_position, "', '".join(vertical_alignments)) )
+        self.__params["verticalTextPosition"] = vertical_text_position
+
 
     custom_properties_defs = {}
 
@@ -228,12 +254,24 @@ class Node:
                  y=False, node_type="ShapeNode", UML=False,
                  custom_properties=None, description="", url=""):
 
-        self.label = label
-        if label is None:
-            self.label = node_name
-
         self.node_name = node_name
 
+        if len(labels)>0:
+            if all(isinstance(l, NodeLabel) for l in labels):
+                self.labels = labels
+            else:
+                raise RuntimeWarning("Parameter labels must be a list of NodeLabel")
+        else:
+            # For backward compatibility
+            labelText = label if label else node_name
+            self.labels = [NodeLabel(labelText, 
+                        alignment=label_alignment,
+                        font_family =  font_family,
+                        underlined_text = underlined_text,
+                        font_style =  font_style,
+                        font_size =  font_size, 
+                        )]
+        
         self.node_type = node_type
         self.UML = UML
 
@@ -244,21 +282,6 @@ class Node:
             raise RuntimeWarning("Node shape %s not recognised" % shape)
 
         self.shape = shape
-
-        # label formatting options
-        self.font_family = font_family
-        self.underlined_text = underlined_text
-
-        if font_style not in font_styles:
-            raise RuntimeWarning("Font style %s not recognised" % font_style)
-
-        if label_alignment not in label_alignments:
-            raise RuntimeWarning("Label alignment %s not recognised" % label_alignment)
-
-        self.font_style = font_style
-        self.font_size = font_size
-
-        self.label_alignment = label_alignment
 
         # shape fill
         self.shape_fill = shape_fill
@@ -317,12 +340,8 @@ class Node:
         ET.SubElement(shape, "y:BorderStyle", color=self.border_color, type=self.border_type,
                       width=self.border_width)
 
-        label = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family,
-                              fontSize=self.font_size,
-                              underlinedText=self.underlined_text,
-                              fontStyle=self.font_style,
-                              alignment=self.label_alignment)
-        label.text = self.label
+        for label in self.labels:
+            label.addSubElement(shape)
 
         ET.SubElement(shape, "y:Shape", type=self.shape)
 
