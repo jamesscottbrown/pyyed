@@ -2,27 +2,120 @@ import sys
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-node_shapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
-               "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
-               "parallelogram2", "star5", "star6", "star6", "star8", "trapezoid",
-               "trapezoid2", "triangle", "trapezoid2", "triangle"]
-
+# Shared parameters
 line_types = ["line", "dashed", "dotted", "dashed_dotted"]
 font_styles = ["plain", "bold", "italic", "bolditalic"]
-
 horizontal_alignments = ['left', 'center', 'right']
 vertical_alignments = ['top', 'center', 'bottom']
-
-arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "short",
-               "plain", "concave", "convex", "circle", "transparent_circle", "dash",
-               "skewed_dash", "t_shape", "crows_foot_one_mandatory",
-               "crows_foot_many_mandatory", "crows_foot_many_optional", "crows_foot_one",
-               "crows_foot_many", "crows_foot_optional"]
-
-
 custom_property_scopes = ["node", "edge"]
-
 custom_property_types = ["string", "int", "double", "boolean"]
+
+def checkValue(parameter_name, value, validValues = None):
+    if validValues is not None:
+        if value not in validValues:
+            raise ValueError("%s = '%s' is not supported. Use: '%s'" % (parameter_name, value, "', '".join(validValues)) )
+
+class Label:
+    def __init__(self, text, height="18.1328125", width= None, 
+                    alignment="center",
+                    font_family="Dialog", 
+                    font_size="12", 
+                    font_style="plain",
+                    horizontalTextPosition="center",
+                    underlined_text = "false",
+                    text_color="#000000", 
+                    icon_text_gap="4", 
+                    horizontal_text_position="center", 
+                    vertical_text_position="center", 
+                    visible="true",  
+                    border_color = None,
+                    background_color = None, 
+                    has_background_color="false"):  
+
+        self._text = text 
+        # Initialize dictionary for parameters
+        self._params = {}        
+        self.updateParam("horizontalTextPosition", horizontal_text_position, horizontal_alignments)
+        self.updateParam("verticalTextPosition", vertical_text_position, vertical_alignments)
+        self.updateParam("alignment", alignment, horizontal_alignments)
+        self.updateParam("fontStyle", font_style, font_styles)
+
+        #TODO: Implement range checks
+        self.updateParam("fontFamily", font_family)
+        self.updateParam("iconTextGap", icon_text_gap)
+        self.updateParam("fontSize", font_size)
+        self.updateParam("textColor", text_color)
+        self.updateParam("visible", visible.lower(), ["true", "false"])
+        self.updateParam("underlinedText" ,underlined_text.lower(), ["true", "false"])
+        self.updateParam("hasBackgroundColor", has_background_color.lower(), ["true", "false"])
+        self.updateParam("width", width)
+        self.updateParam("height", height)
+        self.updateParam("borderColor", border_color)
+        self.updateParam("backgroundColor", background_color)
+
+    def updateParam(self, parameter_name, value, validValues = None):
+        if value is None:
+            return False
+        checkValue(parameter_name,value,validValues)
+
+        self._params[parameter_name] = value
+        return True
+
+class NodeLabel(Label):
+    validModelParams = {
+        "internal" : ["t", "b", "c", "l", "r", "tl", "tr", "bl", "br"],
+        "corners" : ["nw", "ne", "sw" , "se"],
+        "sandwich" : ["n", "s"],
+        "sides" : ["n", "e", "s", "w"],
+        "eight_pos" : ["n", "e", "s", "w", "nw", "ne", "sw" , "se"]
+    }
+
+    def __init__(self, text, alignment="center", font_family="Dialog", font_size="12", font_style="plain", height="18.1328125", 
+                    horizontalTextPosition="center", underlined_text = "false", icon_text_gap = "4",
+                    text_color="#000000", horizontal_text_position="center", vertical_text_position="center", visible="true",  
+                    has_background_color="false", width="55.708984375", model_name ="internal", 
+                    border_color = None, background_color = None, model_position ="c"):  
+
+        super().__init__(text, height, width, alignment, font_family, font_size, font_style, horizontalTextPosition,
+                    underlined_text, text_color, icon_text_gap, horizontal_text_position, vertical_text_position, 
+                    visible, border_color, background_color, has_background_color)
+
+        self.updateParam("modelName", model_name, NodeLabel.validModelParams.keys() )
+        self.updateParam("modelPosition", model_position, NodeLabel.validModelParams[model_name] )
+
+    def addSubElement(self, shape):
+        label = ET.SubElement(shape, "y:NodeLabel", **self._params)
+        label.text = self._text
+
+class EdgeLabel(Label):
+
+    validModelParams = {
+        "two_pos" : ["head","tail"],
+        "centered" : ["center"],
+        "six_pos" : ["shead", "thead","head","stail", "ttail","tail"],
+        "three_center"  : ["center", "scentr", "tcentr"],
+        "center_slider" : None,
+        "side_slider" : None
+    }
+
+    def __init__(self, text, alignment="center", font_family="Dialog", font_size="12", font_style="plain", height="18.1328125", 
+                    horizontalTextPosition="center", underlined_text = "false", icon_text_gap = "4",
+                    text_color="#000000", horizontal_text_position="center", vertical_text_position="center", visible="true",  
+                    has_background_color="false", width="55.708984375", model_name = "centered", model_position = "center",
+                    border_color = None, background_color = None, 
+                    preferred_placement=None):  
+        
+        super().__init__(text, height, width, alignment, font_family, font_size, font_style, horizontalTextPosition,
+                    underlined_text, text_color, icon_text_gap, horizontal_text_position, vertical_text_position, 
+                    visible, border_color, background_color, has_background_color)
+
+        self.updateParam("modelName", model_name, EdgeLabel.validModelParams.keys())
+        self.updateParam("modelPosition", model_position, EdgeLabel.validModelParams[model_name])
+        self.updateParam("preferredPlacement", preferred_placement)
+
+    def addSubElement(self, shape):
+        label = ET.SubElement(shape, "y:EdgeLabel", **self._params)
+        label.text = self._text
 
 
 class CustomPropertyDefinition:
@@ -52,6 +145,12 @@ class CustomPropertyDefinition:
 
 
 class Group:
+
+    validShapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
+               "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
+               "parallelogram2", "star5", "star6", "star6", "star8", "trapezoid",
+               "trapezoid2", "triangle", "trapezoid2", "triangle"]
+
     def __init__(self, group_id, parent_graph, label=None, label_alignment="center", shape="rectangle",
                  closed="false", font_family="Dialog", underlined_text="false",
                  font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
@@ -71,8 +170,7 @@ class Group:
         self.num_edges = 0
 
         # node shape
-        if shape not in node_shapes:
-            raise RuntimeWarning("Node shape %s not recognised" % shape)
+        checkValue("shape", shape, Group.validShapes)
         self.shape = shape
 
         self.closed = closed
@@ -80,16 +178,12 @@ class Group:
         # label formatting options
         self.font_family = font_family
         self.underlined_text = underlined_text
-
-        if font_style not in font_styles:
-            raise RuntimeWarning("Font style %s not recognised" % font_style)
-
-        if label_alignment not in horizontal_alignments:
-            raise RuntimeWarning("Label alignment %s not recognised" % label_alignment)
-
+        
+        checkValue("font_style", font_style, font_styles)
         self.font_style = font_style
         self.font_size = font_size
 
+        checkValue("label_alignment", label_alignment, horizontal_alignments)
         self.label_alignment = label_alignment
 
         self.fill = fill
@@ -108,9 +202,7 @@ class Group:
         self.border_color = border_color
         self.border_width = border_width
 
-        if border_type not in line_types:
-            raise RuntimeWarning("Border type %s not recognised" % border_type)
-
+        checkValue("border_type",border_type,line_types)
         self.border_type = border_type
 
         self.description = description
@@ -186,7 +278,6 @@ class Group:
                               underlinedText=self.underlined_text,
                               fontStyle=self.font_style,
                               alignment=self.label_alignment)
-
         label.text = self.label
 
         ET.SubElement(group_node, "y:Shape", type=self.shape)
@@ -219,100 +310,46 @@ class Group:
         # ProxyAutoBoundsNode crap just draws bar at top of group
 
 
-class NodeLabel:
-    modelParamsValid = {
-        "internal" : ["u", "b", "c", "l", "r", "ul", "ur", "bl", "br"],
-        "corners" : ["nw", "ne", "sw" , "se"],
-        "sandwich" : ["n", "s"],
-        "sides" : ["n", "e", "s", "w"],
-        "eight_pos" : ["n", "e", "s", "w", "nw", "ne", "sw" , "se"]
-    }
-
-    def __init__(self, text, alignment="center", font_family="Dialog", font_size="12", font_style="plain", height="18.1328125", 
-                    horizontalTextPosition="center", model_name ="internal", model_position ="c", underlined_text = "false", 
-                    text_color="#000000", horizontal_text_position="center", vertical_text_position="center", visible="true",  
-                    has_background_color="false", width="55.708984375"):  
-        
-        self.__text = text # Initialize dictionary for parameters
-        self.__params = {}        
-
-        if horizontal_text_position not in horizontal_alignments:
-            raise RuntimeWarning("horizontal_text_position '%s' is not supported. Please use '%s'" % (horizontal_text_position, "', '".join(horizontal_alignments)) )
-        self.__params["horizontalTextPosition"] = horizontal_text_position
-
-        if vertical_text_position not in vertical_alignments:
-            raise RuntimeWarning("vertical_text_position '%s' is not supported. Please use '%s'" % (vertical_text_position, "', '".join(vertical_alignments)) )
-        self.__params["verticalTextPosition"] = vertical_text_position
-
-        if alignment not in horizontal_alignments:
-            raise RuntimeWarning("alignment '%s' is not supported. Please use '%s'" % (alignment, "', '".join(horizontal_alignments)) )
-        self.__params["alignment"] = alignment
-
-        if font_style not in font_styles:
-            raise RuntimeWarning("font_style '%s' is not supported. Please use '%s'" % (font_style, "', '".join(font_styles)) )
-        self.__params["fontStyle"] = font_style
-        
-        if model_name not in NodeLabel.modelParamsValid.keys():
-            raise RuntimeWarning("model_name '%s' is not supported. Please use '%s'" % (model_name, "', '".join(nodeLabel.modelParamsValid.keys())) )
-        self.__params["modelName"] = model_name
-
-        if model_position not in NodeLabel.modelParamsValid[model_name]:
-            raise RuntimeWarning("model_position '%s' is not supported. Please use '%s'" % (model_position, "', '".join(NodeLabel.modelParamsValid[model_name])) )
-        self.__params["modelPosition"] = model_position
-
-        #TODO: Implement range checks
-        self.__params["fontFamily"] = font_family
-        self.__params["font_size"] = font_size
-        self.__params["textColor"] = text_color
-        self.__params["visible"]=visible
-        self.__params["underlinedText"]= underlined_text
-        self.__params["hasBackgroundColor"]= has_background_color
-        self.__params["width"] = width
-        self.__params["height"] = height
-
-    def addSubElement(self, shape):
-        label = ET.SubElement(shape, "y:NodeLabel", **self.__params)
-        label.text = self.__text
-
 class Node:
+
     custom_properties_defs = {}
 
-    def __init__(self, node_name, labels = [], label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
+    validShapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
+               "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
+               "parallelogram2", "star5", "star6", "star6", "star8", "trapezoid",
+               "trapezoid2", "triangle", "trapezoid2", "triangle"]
+
+    def __init__(self, node_name, label=None, label_alignment="center", shape="rectangle", font_family="Dialog",
                  underlined_text="false", font_style="plain", font_size="12",
                  shape_fill="#FF0000", transparent="false", border_color="#000000",
                  border_type="line", border_width="1.0", height=False, width=False, x=False,
                  y=False, node_type="ShapeNode", UML=False,
                  custom_properties=None, description="", url=""):
 
-        self.node_name = node_name
-
-        if len(labels)>0:
-            if all(isinstance(l, NodeLabel) for l in labels):
-                self.labels = labels
-            else:
-                raise RuntimeWarning("Parameter labels must be a list of NodeLabel")
+        self.list_of_labels = [] # initialize list of labels
+        if label:
+            self.add_label(label, alignment=label_alignment,
+                            font_family =  font_family, underlined_text = underlined_text,
+                            font_style =  font_style, font_size =  font_size)    
         else:
-            # For backward compatibility
-            labelText = label if label else node_name
-            self.labels = [NodeLabel(labelText, 
-                        alignment=label_alignment,
-                        font_family =  font_family,
-                        underlined_text = underlined_text,
-                        font_style =  font_style,
-                        font_size =  font_size, 
-                        )]
-        
+            self.add_label(node_name, alignment=label_alignment,
+                            font_family =  font_family, underlined_text = underlined_text,
+                            font_style =  font_style, font_size =  font_size)  
+
+        self.node_name = node_name    
+
         self.node_type = node_type
         self.UML = UML
 
         self.parent = None
 
         # node shape
-        if shape not in node_shapes:
-            raise RuntimeWarning("Node shape %s not recognised" % shape)
+        checkValue("shape", shape, Node.validShapes)
 
         self.shape = shape
+  
 
+        
         # shape fill
         self.shape_fill = shape_fill
         self.transparent = transparent
@@ -321,8 +358,7 @@ class Node:
         self.border_color = border_color
         self.border_width = border_width
 
-        if border_type not in line_types:
-            raise RuntimeWarning("Border type %s not recognised" % border_type)
+        checkValue("border_type", border_type, line_types)
 
         self.border_type = border_type
 
@@ -354,6 +390,11 @@ class Node:
             else:
                 setattr(self, name, definition.default_value)
 
+    def add_label(self, label_text, **kwargs):
+        label = NodeLabel(label_text, **kwargs)
+        self.list_of_labels.append(label)
+        return label
+
     def convert(self):
 
         node = ET.Element("node", id=str(self.node_name))
@@ -370,7 +411,7 @@ class Node:
         ET.SubElement(shape, "y:BorderStyle", color=self.border_color, type=self.border_type,
                       width=self.border_width)
 
-        for label in self.labels:
+        for label in self.list_of_labels:
             label.addSubElement(shape)
 
         ET.SubElement(shape, "y:Shape", type=self.shape)
@@ -408,45 +449,51 @@ class Node:
 
 
 class Edge:
-
     custom_properties_defs = {}
 
-    def __init__(self, node1, node2, label="", arrowhead="standard", arrowfoot="none",
-                 color="#000000", line_type="line", width="1.0", edge_id="",
-                 label_background_color="", label_border_color="",
-                 source_label=None, target_label=None,
-                 custom_properties=None, description="", url=""):
+    arrow_types = ["none", "standard", "white_delta", "diamond", "white_diamond", "short",
+               "plain", "concave", "convex", "circle", "transparent_circle", "dash",
+               "skewed_dash", "t_shape", "crows_foot_one_mandatory",
+               "crows_foot_many_mandatory", "crows_foot_many_optional", "crows_foot_one",
+               "crows_foot_many", "crows_foot_optional"]
+
+    def __init__(self, node1, node2, label=None, arrowhead="standard", arrowfoot="none",
+                color="#000000", line_type="line", width="1.0", edge_id="",
+                label_background_color="", label_border_color="",
+                source_label=None, target_label=None,
+                custom_properties=None, description="", url=""):
         self.node1 = node1
         self.node2 = node2
 
+        self.list_of_labels = [] # initialize list of labels
+
+        if label:
+            self.add_label(label, border_color = label_border_color, background_color = label_background_color)
+            
         if not edge_id:
             edge_id = "%s_%s" % (node1, node2)
         self.edge_id = str(edge_id)
 
-        self.label = label
-        self.source_label = source_label
-        self.target_label = target_label
+        if source_label is not None:
+            self.add_label(source_label, model_name="six_pos", model_position="shead", preferred_placement="source_on_edge",
+            border_color=label_border_color, background_color = label_background_color)
 
-        if arrowhead not in arrow_types:
-            raise RuntimeWarning("Arrowhead type %s not recognised" % arrowhead)
+        if target_label is not None:
+            self.add_label(source_label, model_name="six_pos", model_position="shead", preferred_placement="source_on_edge",
+            border_color=label_border_color, background_color = label_background_color)
 
+
+        checkValue("arrowhead", arrowhead, Edge.arrow_types)
         self.arrowhead = arrowhead
 
-        if arrowfoot not in arrow_types:
-            raise RuntimeWarning("Arrowfoot type %s not recognised" % arrowfoot)
-
+        checkValue("arrowfoot", arrowfoot, Edge.arrow_types)
         self.arrowfoot = arrowfoot
 
-        if line_type not in line_types:
-            raise RuntimeWarning("Line type %s not recognised" % line_type)
-
+        checkValue("line_type", line_type, line_types)
         self.line_type = line_type
 
         self.color = color
         self.width = width
-
-        self.label_background_color = label_background_color
-        self.label_border_color = label_border_color
 
         self.description = description
         self.url = url
@@ -465,6 +512,11 @@ class Edge:
             else:
                 setattr(self, name, definition.default_value)
 
+    def add_label(self, label_text, **kwargs):
+        edgeLabel = EdgeLabel(label_text, **kwargs)
+        self.list_of_labels.append(edgeLabel)
+        return edgeLabel
+
     def convert(self):
         edge = ET.Element("edge", id=str(self.edge_id), source=str(self.node1), target=str(self.node2))
         data = ET.SubElement(edge, "data", key="data_edge")
@@ -474,23 +526,9 @@ class Edge:
         ET.SubElement(pl, "y:LineStyle", color=self.color, type=self.line_type,
                       width=self.width)
 
-        label_color_args = {}
-        if self.label_background_color:
-            label_color_args["backgroundColor"] = self.label_background_color
-        if self.label_border_color:
-            label_color_args["lineColor"] = self.label_border_color
-
-        if self.label:
-            ET.SubElement(pl, "y:EdgeLabel", **label_color_args).text = self.label
-
-        if self.source_label:
-            ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="shead",
-                          preferredPlacement="source_on_edge", **label_color_args).text = self.source_label
-
-        if self.target_label:
-            ET.SubElement(pl, "y:EdgeLabel", modelName="six_pos", modelPosition="ttail",
-                          preferredPlacement="target_on_edge", **label_color_args).text = self.target_label
-
+        for label in self.list_of_labels:
+            label.addSubElement(pl)
+        
         if self.url:
             url_edge = ET.SubElement(edge, "data", key="url_edge")
             url_edge.text = self.url
@@ -505,8 +543,6 @@ class Edge:
             edge_custom_prop.text = getattr(self, name)
 
         return edge
-
-    #
     @classmethod
     def set_custom_properties_defs(cls, custom_property):
         cls.custom_properties_defs[custom_property.name] = custom_property
