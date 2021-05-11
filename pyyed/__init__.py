@@ -13,9 +13,11 @@ custom_property_types = ["string", "int", "double", "boolean"]
 def checkValue(parameter_name, value, validValues = None):
     if validValues is not None:
         if value not in validValues:
-            raise ValueError("%s = '%s' is not supported. Use: '%s'" % (parameter_name, value, "', '".join(validValues)) )
+            raise ValueError("%s '%s' is not supported. Use: '%s'" % (parameter_name, value, "', '".join(validValues)) )
 
 class Label:
+    graphML_tagName = None
+
     def __init__(self, text, height="18.1328125", width= None, 
                     alignment="center",
                     font_family="Dialog", 
@@ -32,13 +34,19 @@ class Label:
                     background_color = None, 
                     has_background_color="false"):  
 
+        #make class abstract
+        if type(self) is Label:
+            raise Exception('Label is an abstract class and cannot be instantiated directly')
+
         self._text = text 
+
         # Initialize dictionary for parameters
         self._params = {}        
         self.updateParam("horizontalTextPosition", horizontal_text_position, horizontal_alignments)
         self.updateParam("verticalTextPosition", vertical_text_position, vertical_alignments)
         self.updateParam("alignment", alignment, horizontal_alignments)
         self.updateParam("fontStyle", font_style, font_styles)
+
 
         #TODO: Implement range checks
         self.updateParam("fontFamily", font_family)
@@ -47,11 +55,14 @@ class Label:
         self.updateParam("textColor", text_color)
         self.updateParam("visible", visible.lower(), ["true", "false"])
         self.updateParam("underlinedText" ,underlined_text.lower(), ["true", "false"])
+        if background_color:
+            has_background_color = "true"
         self.updateParam("hasBackgroundColor", has_background_color.lower(), ["true", "false"])
         self.updateParam("width", width)
         self.updateParam("height", height)
         self.updateParam("borderColor", border_color)
         self.updateParam("backgroundColor", background_color)
+
 
     def updateParam(self, parameter_name, value, validValues = None):
         if value is None:
@@ -60,6 +71,10 @@ class Label:
 
         self._params[parameter_name] = value
         return True
+    
+    def addSubElement(self, shape):
+        label = ET.SubElement(shape, self.graphML_tagName, **self._params)
+        label.text = self._text
 
 class NodeLabel(Label):
     validModelParams = {
@@ -69,6 +84,8 @@ class NodeLabel(Label):
         "sides" : ["n", "e", "s", "w"],
         "eight_pos" : ["n", "e", "s", "w", "nw", "ne", "sw" , "se"]
     }
+
+    graphML_tagName = "y:NodeLabel"
 
     def __init__(self, text, alignment="center", font_family="Dialog", font_size="12", font_style="plain", height="18.1328125", 
                     horizontalTextPosition="center", underlined_text = "false", icon_text_gap = "4",
@@ -80,12 +97,8 @@ class NodeLabel(Label):
                     underlined_text, text_color, icon_text_gap, horizontal_text_position, vertical_text_position, 
                     visible, border_color, background_color, has_background_color)
 
-        self.updateParam("modelName", model_name, NodeLabel.validModelParams.keys() )
-        self.updateParam("modelPosition", model_position, NodeLabel.validModelParams[model_name] )
-
-    def addSubElement(self, shape):
-        label = ET.SubElement(shape, "y:NodeLabel", **self._params)
-        label.text = self._text
+        self.updateParam("modelName", model_name, NodeLabel.validModelParams.keys())
+        self.updateParam("modelPosition", model_position, NodeLabel.validModelParams[model_name])
 
 class EdgeLabel(Label):
 
@@ -97,6 +110,8 @@ class EdgeLabel(Label):
         "center_slider" : None,
         "side_slider" : None
     }
+
+    graphML_tagName = "y:EdgeLabel"
 
     def __init__(self, text, alignment="center", font_family="Dialog", font_size="12", font_style="plain", height="18.1328125", 
                     horizontalTextPosition="center", underlined_text = "false", icon_text_gap = "4",
@@ -112,11 +127,6 @@ class EdgeLabel(Label):
         self.updateParam("modelName", model_name, EdgeLabel.validModelParams.keys())
         self.updateParam("modelPosition", model_position, EdgeLabel.validModelParams[model_name])
         self.updateParam("preferredPlacement", preferred_placement)
-
-    def addSubElement(self, shape):
-        label = ET.SubElement(shape, "y:EdgeLabel", **self._params)
-        label.text = self._text
-
 
 class CustomPropertyDefinition:
 
@@ -145,7 +155,6 @@ class CustomPropertyDefinition:
 
 
 class Group:
-
     validShapes = ["rectangle", "rectangle3d", "roundrectangle", "diamond", "ellipse",
                "fatarrow", "fatarrow2", "hexagon", "octagon", "parallelogram",
                "parallelogram2", "star5", "star6", "star6", "star8", "trapezoid",
@@ -345,11 +354,8 @@ class Node:
 
         # node shape
         checkValue("shape", shape, Node.validShapes)
-
         self.shape = shape
   
-
-        
         # shape fill
         self.shape_fill = shape_fill
         self.transparent = transparent
@@ -359,7 +365,6 @@ class Node:
         self.border_width = border_width
 
         checkValue("border_type", border_type, line_types)
-
         self.border_type = border_type
 
         # geometry
@@ -391,9 +396,9 @@ class Node:
                 setattr(self, name, definition.default_value)
 
     def add_label(self, label_text, **kwargs):
-        label = NodeLabel(label_text, **kwargs)
-        self.list_of_labels.append(label)
-        return label
+        self.list_of_labels.append(NodeLabel(label_text, **kwargs))
+        return self
+
 
     def convert(self):
 
@@ -513,9 +518,9 @@ class Edge:
                 setattr(self, name, definition.default_value)
 
     def add_label(self, label_text, **kwargs):
-        edgeLabel = EdgeLabel(label_text, **kwargs)
-        self.list_of_labels.append(edgeLabel)
-        return edgeLabel
+        self.list_of_labels.append(EdgeLabel(label_text, **kwargs))
+        # Enable method chaining
+        return self
 
     def convert(self):
         edge = ET.Element("edge", id=str(self.edge_id), source=str(self.node1), target=str(self.node2))
