@@ -23,6 +23,7 @@ g.define_custom_property("node", "Population", "int", "0")
 g.define_custom_property("node", "Unemployment", "double", "0.0")
 g.define_custom_property("node", "Environmental Engagements", "boolean", "false")
 g.define_custom_property("node", "Mayor", "string", "")
+g.define_custom_property("node", "Country", "string", "")
 
 # Define Edge Custom Properties
 '''
@@ -36,6 +37,10 @@ g.define_custom_property("edge", "Distance", "int", "0")
 g.define_custom_property("edge", "Availability", "double", "100.0")
 g.define_custom_property("edge", "Toll Free", "boolean", "true")
 g.define_custom_property("edge", "Year of build", "string", "")
+
+# Create Groups
+g1 = g.add_group('group1',
+           custom_properties={"Country": "Kitchen"})
 
 # Create Nodes
 g.add_node('Pasta City',
