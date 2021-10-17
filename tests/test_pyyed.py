@@ -48,9 +48,9 @@ def test_uml_node_properties_are_set():
                     "attributes": expected_attributes,
                     "methods": expected_methods})
 
-    assert g.nodes["AbstractClass"].UML["stereotype"] == expected_stereotype
-    assert g.nodes["AbstractClass"].UML["attributes"] == expected_attributes
-    assert g.nodes["AbstractClass"].UML["methods"] == expected_methods
+    assert g.nodes["AbstractClass"].library['UML']["stereotype"] == expected_stereotype
+    assert g.nodes["AbstractClass"].library['UML']["attributes"] == expected_attributes
+    assert g.nodes["AbstractClass"].library['UML']["methods"] == expected_methods
 
     graphml = g.get_graph()
     assertUmlNode(graphml, expected_stereotype,
@@ -67,8 +67,8 @@ def test_uml_stereotype_is_optional():
                UML={"attributes": expected_attributes,
                     "methods": expected_methods})
 
-    assert g.nodes["Class"].UML["methods"] == expected_methods
-    assert g.nodes["Class"].UML["attributes"] == expected_attributes
+    assert g.nodes["Class"].library['UML']["methods"] == expected_methods
+    assert g.nodes["Class"].library['UML']["attributes"] == expected_attributes
 
     graphml = g.get_graph()
     assertUmlNode(graphml, "", expected_attributes, expected_methods)
