@@ -226,6 +226,7 @@ class Node:
                  shape_fill="#FF0000", transparent="false", border_color="#000000",
                  border_type="line", border_width="1.0", height=False, width=False, x=False,
                  y=False, node_type="ShapeNode", UML=False,
+                 ER=False,
                  custom_properties=None, description="", url=""):
 
         self.label = label
@@ -234,8 +235,14 @@ class Node:
 
         self.node_name = node_name
 
+        # Entity node must be created as a GenericNode with a configuration attribute
         self.node_type = node_type
-        self.UML = UML
+        # library defines the used yEd library. Currently, we support UML and Entity Relation
+        self.library = {}
+        if UML:
+            self.library['UML']=UML
+        elif ER:
+            self.library['ER']=ER
 
         self.parent = None
 
@@ -324,19 +331,49 @@ class Node:
                               alignment=self.label_alignment)
         label.text = self.label
 
-        ET.SubElement(shape, "y:Shape", type=self.shape)
+        subshape = ET.SubElement(shape, "y:Shape", type=self.shape)
 
-        if self.UML:
+        if 'UML' in self.library:
             UML = ET.SubElement(shape, "y:UML")
 
             attributes = ET.SubElement(UML, "y:AttributeLabel", type=self.shape)
-            attributes.text = self.UML["attributes"]
+            attributes.text = self.library['UML']["attributes"]
 
             methods = ET.SubElement(UML, "y:MethodLabel", type=self.shape)
-            methods.text = self.UML["methods"]
+            methods.text = self.library['UML']["methods"]
 
-            stereotype = self.UML["stereotype"] if "stereotype" in self.UML else ""
+            stereotype = self.library['UML']["stereotype"] if "stereotype" in self.library['UML'] else ""
             UML.set("stereotype", stereotype)
+        elif 'ER' in self.library:
+            shape.remove(subshape)
+            shape.set("configuration", "com.yworks.entityRelationship.big_entity")
+            label.set("configuration", "com.yworks.entityRelationship.label.name")
+            if 'attributes' in self.library['ER']:
+                attributes = ET.SubElement(shape, "y:NodeLabel", fontFamily=self.font_family,
+                                    fontSize=self.font_size,
+                                    underlinedText=self.underlined_text,
+                                    fontStyle=self.font_style,
+                                    alignment='left',
+                                    configuration="com.yworks.entityRelationship.label.attributes",
+                                    modelName='internal',
+                                    modelPostion='t')
+                attributes_param = self.library['ER']['attributes']
+                if isinstance(attributes_param, list):
+                    attributes_param = "\n".join(attributes_param)
+                attributes.text = attributes_param
+                labelModel = ET.SubElement(attributes, "y:LabelModel")
+                modelParameter = ET.SubElement(attributes, "y:ModelParameter")
+                ET.SubElement(labelModel, "y:ErdAttributesNodeLabelModel")
+                ET.SubElement(modelParameter, "y:ErdAttributesNodeLabelModelParameter")
+
+            label.set('modelName', 'internal')
+            label.set('modelPosition', 't')
+            styledProperty = ET.SubElement(shape, "y:StyleProperties")
+            ET.SubElement(styledProperty, "y:Property", {'class':"java.lang.Boolean", 'name':"y.view.ShadowNodePainter.SHADOW_PAINTING", 'value':"true"})
+            weak = 'false'
+            if 'weak' in self.library['ER'] and self.library['ER']['weak']:
+                weak = 'true'
+            ET.SubElement(styledProperty, "y:Property", {'class':"java.lang.Boolean", 'name':"doubleBorder", 'value':weak})
 
         if self.url:
             url_node = ET.SubElement(node, "data", key="url_node")
@@ -565,6 +602,17 @@ class Graph:
             return ET.tostring(self.graphml, encoding='UTF-8').decode()
 
     def add_node(self, node_name, **kwargs):
+        """
+        Adds a node to the graph.
+
+        Parameters
+        ----------
+        node_name : str
+            name of generated node
+        kwargs : dict, optional
+            contains a list of additionnal parameters.
+            Supported values are all parameters to Node constructor
+        """
         if node_name in self.existing_entities:
             raise RuntimeWarning("Node %s already exists" % node_name)
 
