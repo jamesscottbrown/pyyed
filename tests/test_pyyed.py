@@ -20,20 +20,20 @@ def test_node_properties_after_nodes_and_edges_added():
 
     g = pyyed.Graph()
 
-    g.add_node('foo',  shape="ellipse")
-    g.add_node('foo2', shape="roundrectangle", font_style="bolditalic")
+    node1 = g.add_node('foo',  shape="ellipse")
+    node2  = g.add_node('foo2', shape="roundrectangle", font_style="bolditalic")
 
-    g.add_edge('foo1', 'foo2')
-    g.add_node('abc', shape="triangle", font_style="bold")
+    edge1 = g.add_edge('foo1', 'foo2')
+    node3 = g.add_node('abc', shape="triangle", font_style="bold")
 
     assert g.nodes["foo"].shape == "ellipse"
-    assert g.nodes["foo"].font_style == "plain"
+    assert g.nodes["foo"].list_of_labels[0]._params['fontStyle'] == "plain"
 
     assert g.nodes["foo2"].shape == "roundrectangle"
-    assert g.nodes["foo2"].font_style == "bolditalic"
+    assert g.nodes["foo2"].list_of_labels[0]._params['fontStyle']== "bolditalic"
 
     assert g.nodes["abc"].shape == "triangle"
-    assert g.nodes["abc"].font_style == "bold"
+    assert g.nodes["abc"].list_of_labels[0]._params['fontStyle'] == "bold"
 
 
 def test_uml_node_properties_are_set():
@@ -95,23 +95,23 @@ def test_numeric_node_ids():
     g.add_node(2, label="Node2")
     g.add_edge(1, 2)
 
-    assert g.nodes[1].label == "Node1"
-    assert g.nodes[2].label == "Node2"
+    assert g.nodes[1].list_of_labels[0]._text == "Node1"
+    assert g.nodes[2].list_of_labels[0]._text == "Node2"
 
     node1 = g.edges['1'].node1
     node2 = g.edges['1'].node2
 
-    assert g.nodes[node1].label == "Node1"
-    assert g.nodes[node2].label == "Node2"
+    assert g.nodes[node1].list_of_labels[0]._text == "Node1"
+    assert g.nodes[node2].list_of_labels[0]._text  == "Node2"
 
     assert g.get_graph()
 
 
 def test_multiple_edges():
     g = pyyed.Graph()
-    g.add_node('a', font_family="Zapfino")
-    g.add_node('b', font_family="Zapfino")
-    g.add_node('c', font_family="Zapfino")
+    g.add_node('a', font_family="Zapfino").add_label("a2")
+    g.add_node('b', font_family="Zapfino").add_label("b2")
+    g.add_node('c', font_family="Zapfino").add_label("c2")
 
     g.add_edge('a', 'b')
     g.add_edge('a', 'b')
@@ -121,14 +121,24 @@ def test_multiple_edges():
     e2 = g.edges['2']
     e3 = g.edges['3']
 
-    assert g.nodes[e1.node1].label == "a"
-    assert g.nodes[e1.node2].label == "b"
+    assert g.nodes[e1.node1].list_of_labels[0]._text  == "a"
+    assert g.nodes[e1.node2].list_of_labels[0]._text  == "b"
 
-    assert g.nodes[e2.node1].label == "a"
-    assert g.nodes[e2.node2].label == "b"
+    assert g.nodes[e2.node1].list_of_labels[0]._text  == "a"
+    assert g.nodes[e2.node2].list_of_labels[0]._text == "b"
 
-    assert g.nodes[e3.node1].label == "a"
-    assert g.nodes[e3.node2].label == "c"
+    assert g.nodes[e3.node1].list_of_labels[0]._text  == "a"
+    assert g.nodes[e3.node2].list_of_labels[0]._text  == "c"
+
+    # Test-cases for the second label
+    assert g.nodes[e1.node1].list_of_labels[1]._text  == "a2"
+    assert g.nodes[e1.node2].list_of_labels[1]._text  == "b2"
+
+    assert g.nodes[e2.node1].list_of_labels[1]._text  == "a2"
+    assert g.nodes[e2.node2].list_of_labels[1]._text == "b2"
+
+    assert g.nodes[e3.node1].list_of_labels[1]._text  == "a2"
+    assert g.nodes[e3.node2].list_of_labels[1]._text  == "c2"
 
     assert g.get_graph()
 
