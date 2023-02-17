@@ -489,7 +489,7 @@ class Node:
         ET.SubElement(shape, "y:Shape", type=self.shape)
 
         if self.UML:
-            UML = ET.SubElement(shape, "y:UML")
+            UML = ET.SubElement(shape, "y:UML", use3DEffect="false")
 
             attributes = ET.SubElement(UML, "y:AttributeLabel", type=self.shape)
             attributes.text = self.UML["attributes"]
