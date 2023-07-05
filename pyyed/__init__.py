@@ -164,14 +164,45 @@ class Group:
                  closed="false", font_family="Dialog", underlined_text="false",
                  font_style="plain", font_size="12", fill="#FFCC00", transparent="false",
                  border_color="#000000", border_type="line", border_width="1.0", height=False,
-                 width=False, x=False, y=False, custom_properties=None, description="", url=""):
+                 width=False, x=False, y=False, custom_properties=None, description="", url="", node_id=None):
+        """
 
+        :param group_id:
+        :param parent_graph:
+        :param label:
+        :param label_alignment:
+        :param shape:
+        :param closed:
+        :param font_family:
+        :param underlined_text:
+        :param font_style:
+        :param font_size:
+        :param fill:
+        :param transparent:
+        :param border_color:
+        :param border_type:
+        :param border_width:
+        :param height:
+        :param width:
+        :param x:
+        :param y:
+        :param custom_properties:
+        :param description:
+        :param url:
+        :param node_id: If set, will allow a different name than the node_name (to allow duplicates)
+        """
         self.label = label
         if label is None:
             self.label = group_id
 
         self.parent = None
         self.group_id = group_id
+
+        if node_id is not None:
+            self.node_id = node_id
+        else:
+            self.node_id = group_id
+
         self.nodes = {}
         self.groups = {}
         self.parent_graph = parent_graph
@@ -232,23 +263,31 @@ class Group:
                 setattr(self, name, definition.default_value)
 
     def add_node(self, node_name, **kwargs):
-        if node_name in self.parent_graph.existing_entities:
-            raise RuntimeWarning("Node %s already exists" % node_name)
+        if self.parent_graph.duplicates:
+            node_id = self.parent_graph._next_unique_identifier()
+        else:
+            if node_name in self.parent_graph.existing_entities:
+                raise RuntimeWarning("Node %s already exists" % node_name)
+            node_id = node_name
 
-        node = Node(node_name, **kwargs)
+        node = Node(node_name, node_id=node_id, **kwargs)
         node.parent = self
-        self.nodes[node_name] = node
-        self.parent_graph.existing_entities[node_name] = node
+        self.nodes[node_id] = node
+        self.parent_graph.existing_entities[node_id] = node
         return node
 
     def add_group(self, group_id, **kwargs):
-        if group_id in self.parent_graph.existing_entities:
-            raise RuntimeWarning("Node %s already exists" % group_id)
+        if self.parent_graph.duplicates:
+            node_id = self.parent_graph._next_unique_identifier()
+        else:
+            if group_id in self.parent_graph.existing_entities:
+                raise RuntimeWarning("Node %s already exists" % group_id)
+            node_id = group_id
 
-        group = Group(group_id, self.parent_graph, **kwargs)
+        group = Group(group_id, self.parent_graph, node_id=node_id, allow_duplicates=self.duplicates, **kwargs)
         group.parent = self
-        self.groups[group_id] = group
-        self.parent_graph.existing_entities[group_id] = group
+        self.groups[node_id] = group
+        self.parent_graph.existing_entities[node_id] = group
         return group
 
     def is_ancestor(self, node):
@@ -295,7 +334,7 @@ class Group:
         return edge
 
     def convert(self):
-        node = ET.Element("node", id=self.group_id)
+        node = ET.Element("node", id=self.node_id)
         node.set("yfiles.foldertype", "group")
         data = ET.SubElement(node, "data", key="data_node")
 
@@ -735,8 +774,7 @@ class Graph:
     def add_node(self, node_name, **kwargs):
 
         if self.duplicates:
-            self.num_nodes += 1
-            node_id = self.num_nodes
+            node_id = self._next_unique_identifier()
         else:
             if node_name in self.existing_entities:
                 raise RuntimeWarning("Node %s already exists" % node_name)
@@ -770,12 +808,16 @@ class Graph:
         return edge
 
     def add_group(self, group_id, **kwargs):
-        if group_id in self.existing_entities:
-            raise RuntimeWarning("Node %s already exists" % group_id)
+        if self.duplicates:
+            node_id = self._next_unique_identifier()
+        else:
+            if group_id in self.existing_entities:
+                raise RuntimeWarning("Node %s already exists" % group_id)
+            node_id = group_id
 
-        group = Group(group_id, self, **kwargs)
-        self.groups[group_id] = group
-        self.existing_entities[group_id] = group
+        group = Group(group_id, self, node_id=node_id, **kwargs)
+        self.groups[node_id] = group
+        self.existing_entities[node_id] = group
         return group
 
     def define_custom_property(self, scope, name, property_type, default_value):
@@ -791,3 +833,12 @@ class Graph:
             Node.set_custom_properties_defs(custom_property)
         elif scope == "edge":
             Edge.set_custom_properties_defs(custom_property)
+
+    def _next_unique_identifier(self):
+        """
+        Increment internal counter, then return next identifier not yet used.
+        """
+        self.num_nodes += 1
+        node_id = str(self.num_nodes)
+
+        return node_id
