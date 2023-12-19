@@ -573,13 +573,18 @@ class Edge:
 
 
 class Graph:
+
+    default_edge_directions = ["directed", "undirected"]
+
     def __init__(self, directed="directed", graph_id="G"):
 
         self.nodes = {}
         self.edges = {}
         self.num_edges = 0
 
+        checkValue("directed", directed, Graph.default_edge_directions)
         self.directed = directed
+
         self.graph_id = graph_id
         self.existing_entities = {self.graph_id: self}
 
@@ -690,6 +695,8 @@ class Graph:
 
         self.num_edges += 1
         kwargs['edge_id'] = str(self.num_edges)
+        if self.directed == 'undirected' and 'arrowhead' not in kwargs:
+            kwargs['arrowhead'] = 'none'
         edge = Edge(node1_name, node2_name, **kwargs)
         self.edges[edge.edge_id] = edge
         return edge
