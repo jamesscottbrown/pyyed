@@ -28,3 +28,14 @@ def from_networkx(nx_graph: networkx.Graph, update=None) -> Graph:
     :returns:  A pyyed graph corresponding to the networkx graph.
     '''
     raise NotImplementedError()
+
+def layout_graph(graph: Graph, nx_layout):
+    '''Assigns positions to the nodes in the graph, using the provided layout function. 
+
+    :param nx_layout:  This is a function that takes a networkx graph and return a dict of positions. The keys of the dict corresponds to node names.
+    '''
+    nx_graph = to_networkx(graph)
+    pos = nx_layout(nx_graph)
+    for node_key, position in pos.items():
+        graph.nodes[node_key].geom['x'] = str(position[0])
+        graph.nodes[node_key].geom['y'] = str(position[1])
