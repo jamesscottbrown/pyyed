@@ -17,5 +17,9 @@ setup(name='pyyed',
 
       python_requires='>=3.12',
 
-      install_requires=[]
+      install_requires=[],
+
+      extras_require={
+          'networkx': ['networkx>=3.0'],
+      }
       )
