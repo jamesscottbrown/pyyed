@@ -20,6 +20,7 @@ setup(name='pyyed',
       install_requires=[],
 
       extras_require={
+          'dev': ['pytest'],
           'networkx': ['networkx>=3.0'],
       }
       )
