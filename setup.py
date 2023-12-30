@@ -15,5 +15,7 @@ setup(name='pyyed',
 
       packages=['pyyed'],
 
-      requires=[]
+      python_requires='>=3.12',
+
+      install_requires=[]
       )
