@@ -2,6 +2,7 @@ import sys
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+
 # Shared parameters
 line_types = ["line", "dashed", "dotted", "dashed_dotted"]
 font_styles = ["plain", "bold", "italic", "bolditalic"]
@@ -426,7 +427,8 @@ class Node:
         shape = ET.SubElement(data, "y:" + self.node_type)
 
         if self.geom:
-            ET.SubElement(shape, "y:Geometry", **self.geom)
+            str_geom = {key: str(value) for key, value in self.geom.items()}
+            ET.SubElement(shape, "y:Geometry", **str_geom)
         # <y:Geometry height="30.0" width="30.0" x="475.0" y="727.0"/>
 
         ET.SubElement(shape, "y:Fill", color=self.shape_fill,
@@ -485,7 +487,7 @@ class Edge:
                 color="#000000", line_type="line", width="1.0", edge_id="",
                 label_background_color="", label_border_color="",
                 source_label=None, target_label=None,
-                custom_properties=None, description="", url=""):
+                custom_properties=None, description="", url="",sx=0,sy=0,tx=0,ty=0,points=()):
         self.node1 = node1
         self.node2 = node2
 
@@ -521,6 +523,17 @@ class Edge:
 
         self.description = description
         self.url = url
+
+        self.sx=sx
+        self.sy=sy
+        self.tx=tx
+        self.ty=ty
+        if not isinstance(points,(list,tuple)):
+            print(f"invalid parameter points -> {type(points)}")
+            self.points=()
+        else:
+            self.points=points
+        
 
         # Handle Edge Custom Properties
         for name, definition in Edge.custom_properties_defs.items():
@@ -560,6 +573,18 @@ class Edge:
         if self.description:
             description_edge = ET.SubElement(edge, "data", key="description_edge")
             description_edge.text = self.description
+
+        #process Polyline Edge Points
+        pts=self.points
+        yPath = ET.SubElement(pl, "y:Path", sx=str(self.sx),sy=str(self.sy),tx=str(self.tx),ty=str(self.ty)) #convert to string to allow float and integer values
+        
+        if isinstance(pts, tuple) and len(pts) == 2 and all(isinstance(i, (int, float)) for i in pts):  #Single Coordinates
+            x, y = pts
+            pt = ET.SubElement(yPath, "y:Point",x=str(x),y=str(y)) #absolute coordinates
+        elif isinstance(pts, (list, tuple)) and all(isinstance(item, tuple) and len(item) == 2 for item in pts):# Check if the parameter is a list or tuple of two-dimensional tuples
+            for x, y in pts:
+                pt = ET.SubElement(yPath, "y:Point",x=str(x),y=str(y)) #absolute coordinates
+        
 
         # Edge Custom Properties
         for name, definition in Edge.custom_properties_defs.items():

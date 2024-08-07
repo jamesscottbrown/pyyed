@@ -2,3 +2,6 @@
 __pycache__/
 .cache/
 .DS_Store
+notes.txt
+*.graphml
+*.xml

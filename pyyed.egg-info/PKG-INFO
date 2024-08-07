@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: pyyed
+Version: 1.5.1
+Summary: A simple Python library to export graphs to the yEd graph editor
+Home-page: https://github.com/jamesscottbrown/pyyed
+Author: James Scott-Brown
+Author-email: james@jamesscottbrown.com
+License: UNKNOWN
+Platform: UNKNOWN
+License-File: LICENSE
+
+UNKNOWN
+
